@@ -10,8 +10,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-func NewZapConfig(allConfig *AllConfig) *zap.Logger {
-	var logger *zap.Logger
+func NewZapAtomicLevel(allConfig *AllConfig) *zap.AtomicLevel {
 	level := zap.NewAtomicLevel()
 	switch allConfig.Log.Level {
 	case "debug":
@@ -26,17 +25,21 @@ func NewZapConfig(allConfig *AllConfig) *zap.Logger {
 		//为空默认就是info
 		level.SetLevel(zapcore.InfoLevel)
 	}
+	return &level
+}
+
+func NewZapConfig(allConfig *AllConfig, level *zap.AtomicLevel) *zap.Logger {
+	var logger *zap.Logger
 
 	if allConfig.IsDev() {
 		//输出日志，向控制台输出，如果设置的是warn，那么info是不会输出的
 		devCore := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), level)
-		//这里不添加本身的日志堆栈信息，而是输出错误堆栈信息，因为我们的日志是放到中间件的
+		//这里不添加本身的日志堆栈和caller信息，而是输出错误堆栈信息，因为我们的日志是放到中间件的
+		//  所以caller是中间件，所以有和没有caller没有区别，看错误堆栈信息即可
 		logger = zap.New(devCore)
 	} else {
-		//输出日志，向文件输出，这里设置了多个级别
-		//  all里默认输出所有，但还要看我们本身的设置，如果设置warn，
-		//    那么info是不会输出的，只会输出warn到all文件里
-		//  但是error，fatal等是固定向error文件输出的
+		//输出日志，向文件输出，这里同时输出info和error文件
+		//error，fatal等是固定向error文件输出的
 		prodCoreAll := zapcore.NewCore(getEncoding(allConfig), getLogWriterAll(), level)
 		prodCoreError := zapcore.NewCore(getEncoding(allConfig), getLogWriterError(), zapcore.ErrorLevel)
 		logger = zap.New(zapcore.NewTee(prodCoreAll, prodCoreError))
@@ -112,10 +115,10 @@ func lumberJackAll() *lumberjack.Logger {
 		MaxBackups: 5,
 
 		//保留旧文件的最大天数
-		MaxAge: 30,
+		MaxAge: 15,
 
 		//是否压缩旧文件
-		Compress: false,
+		Compress: true,
 	}
 }
 func lumberJackError() *lumberjack.Logger {
@@ -143,15 +146,11 @@ func lumberJackError() *lumberjack.Logger {
 
 	return &lumberjack.Logger{
 		Filename: fileName,
-
 		//日志文件的最大尺寸,单位MB
-		//切割出来的每个文件都是xMB,但是最开始的主文件可能会小一点
 		MaxSize: 10,
 
-		//保留的旧的最大个数.此时我们输出了10MB的内容.
-		//但是只有5个切割文件+1个主文件.其余5个都删掉了.按照切割出来的日期.早期的会优先进行删除
-		//如果旧日志一直没有删除(没有满5个).但是已经过去30天了.这时候会自动删除
-		MaxBackups: 5,
+		//保留的旧的最大个数
+		MaxBackups: 10,
 
 		//保留旧文件的最大天数
 		MaxAge: 30,
