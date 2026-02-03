@@ -12,19 +12,19 @@ import (
 
 func NewZapConfig(allConfig *AllConfig) *zap.Logger {
 	var logger *zap.Logger
-	var level zapcore.Level
+	level := zap.NewAtomicLevel()
 	switch allConfig.Log.Level {
 	case "debug":
-		level = zapcore.DebugLevel
+		level.SetLevel(zapcore.DebugLevel)
 	case "info":
-		level = zapcore.InfoLevel
+		level.SetLevel(zapcore.InfoLevel)
 	case "warn":
-		level = zapcore.WarnLevel
+		level.SetLevel(zapcore.WarnLevel)
 	case "error":
-		level = zapcore.ErrorLevel
+		level.SetLevel(zapcore.ErrorLevel)
 	default:
 		//为空默认就是info
-		level = zapcore.InfoLevel
+		level.SetLevel(zapcore.InfoLevel)
 	}
 
 	if allConfig.IsDev() {

@@ -75,11 +75,11 @@ func NewUploadAliYunOss(ops ...option) (*UploadAliYunOssHandler, error) {
 func (receiver *UploadAliYunOssHandler) GetUploadUrl(uploadPath string, expired time.Duration) (*UploadUrlResponse, error) {
 	var res UploadUrlResponse
 	ext := path.Ext(uploadPath)
-	ext = strings.Replace(ext, ".", "", -1)
+	extNoPint := strings.Replace(ext, ".", "", -1)
 	result, err := receiver.OssClient.Presign(context.Background(), &oss.PutObjectRequest{
 		Bucket:      oss.Ptr(receiver.BucketName),
 		Key:         oss.Ptr(uploadPath),
-		ContentType: oss.Ptr("image/" + ext),
+		ContentType: oss.Ptr("image/" + extNoPint),
 	}, oss.PresignExpires(expired))
 	if err != nil {
 		return nil, errors.Wrap(err, "获取url签名失败")
@@ -147,7 +147,7 @@ func (receiver *UploadAliYunOssHandler) GetUploadForm(uploadPath string, expired
 	//比如 []string{"image/png", "image/jpg", "image/jpeg"}
 	conditionFileType = append(conditionFileType, receiver.IncludeType)
 
-	//限制上传的大小，单位是字节，这里限制1MB
+	//限制上传的大小，单位是字节
 	var conditionFileSize []interface{}
 	conditionFileSize = append(conditionFileSize, "content-length-range")
 	conditionFileSize = append(conditionFileSize, receiver.MinUploadSize)
@@ -176,7 +176,7 @@ func (receiver *UploadAliYunOssHandler) GetUploadForm(uploadPath string, expired
 	policyToken := UploadPolicyResponse{
 		AccessKeyId: receiver.AccessKeyId,
 		//Bucket域名的固定格式
-		Host:      "http://" + receiver.BucketName + "." + receiver.Endpoint,
+		Host:      "https://" + receiver.BucketName + "." + receiver.Endpoint,
 		Signature: signedStr,
 		Policy:    encodedResult,
 		Key:       uploadPath,

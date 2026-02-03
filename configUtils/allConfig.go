@@ -25,12 +25,14 @@ type AllConfig struct {
 
 	//数据库配置
 	Gorm struct {
-		Url                  string `json:"url"`
-		LogLevel             string `json:"logLevel"`
-		SlowSqlMillSecond    int    `json:"slowSqlMillSecond"`
-		AutoCreateForeignKey bool   `json:"autoCreateForeignKey"`
-		SingularTable        bool   `json:"singularTable"`
-		MaxOpenConn          int    `json:"maxOpenConn"`
+		Url                         string `json:"url"`
+		LogLevel                    string `json:"logLevel"`
+		SlowSqlMillSecond           int    `json:"slowSqlMillSecond"`
+		DisableAutoCreateForeignKey bool   `json:"disableAutoCreateForeignKey"`
+		SingularTable               bool   `json:"singularTable"`
+		MaxOpenConn                 int    `json:"maxOpenConn"`
+		//是否翻译错误，比如主键冲突，你想用gorm的DUPLICATE KEY去检查是不行的，必须要先翻译
+		TransError bool `json:"transError"`
 	}
 
 	//redis配置
@@ -47,10 +49,6 @@ type AllConfig struct {
 	//consul配置
 	Consul struct {
 		Url string `json:"url"`
-	}
-
-	Dtm struct {
-		DtmServer string `json:"dtmServer"`
 	}
 
 	Jwt struct {

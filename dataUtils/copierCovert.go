@@ -87,7 +87,9 @@ var grpcTimestampToTime = copier.TypeConverter{
 			return nil, nil
 		}
 		if grpcTime != nil {
-			return grpcTime.AsTime(), nil
+			//这里会转换到UTC时间，如果数据库有时区设置，这里会转换成对应地区的时间
+			//但是我们可以直接从源头解决，直接取服务器的本地时间，这样就可以统一了
+			return grpcTime.AsTime().In(time.Local), nil
 		}
 		return nil, nil
 	},
@@ -101,7 +103,7 @@ var grpcTimestampToSqlNullTime = copier.TypeConverter{
 			return nil, nil
 		}
 		if grpcTime != nil {
-			return sql.NullTime{Time: grpcTime.AsTime(), Valid: true}, nil
+			return sql.NullTime{Time: grpcTime.AsTime().In(time.Local), Valid: true}, nil
 		}
 		return nil, nil
 	},

@@ -32,8 +32,10 @@ func getGormConfigCommon(logger *zap.Logger, allConfig *AllConfig) *gorm.Config 
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: allConfig.Gorm.SingularTable,
 		},
-		//不自动创建外键
-		DisableForeignKeyConstraintWhenMigrating: allConfig.Gorm.AutoCreateForeignKey,
+		//直接写死
+		TranslateError: true,
+		//是否关闭自动创建外键
+		DisableForeignKeyConstraintWhenMigrating: allConfig.Gorm.DisableAutoCreateForeignKey,
 	}
 	return config
 }

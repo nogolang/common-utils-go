@@ -19,7 +19,7 @@ func GetRandomFileName(prefix string, ext string) string {
 	hashName := getHashName(fmt.Sprintf("%d", rand.Int32N(100000)))
 	newUUID, _ := uuid.NewUUID()
 	name := md5.Sum([]byte(newUUID.String()))
-	fileName := prefix + "/" + hashName + "/" + hex.EncodeToString(name[:]) + ext
+	fileName := prefix + "/" + hashName + "/" + hex.EncodeToString(name[:]) +"."+ext
 	return fileName
 }
 

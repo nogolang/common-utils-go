@@ -33,6 +33,6 @@ func NewElasticClient(allConfig *AllConfig) *elasticsearch.TypedClient {
 		return nil
 	}
 
-	log.Panicln("连接es成功")
+	log.Println("连接es成功")
 	return client
 }
