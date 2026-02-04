@@ -3,6 +3,7 @@ package configUtils
 import (
 	"log"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
@@ -18,5 +19,13 @@ func GetCommonConfigInFile(configPath string) *AllConfig {
 	if err != nil {
 		log.Fatal("配置文件解析失败:", err)
 	}
+
+	//监听配置文件,会自动重写读取进内存
+	viper.OnConfigChange(func(in fsnotify.Event) {
+		log.Println(in.Name, "配置文件更新了")
+	})
+	//监听
+	viper.WatchConfig()
+
 	return &allConfig
 }

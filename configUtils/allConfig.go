@@ -3,33 +3,31 @@ package configUtils
 type AllConfig struct {
 	Mode string `json:"mode"`
 
-	Cluster ClusterConfig
-
-	SnowId SnowIdConfig
-
 	//服务配置
-	Server ServerConfig
+	Server *ServerConfig
+
+	SnowId *SnowIdConfig
 
 	//日志配置
-	Log LogConfig
+	Log *LogConfig
 
 	//数据库配置
-	Gorm GormConfig
+	Gorm *GormConfig
 
 	//redis配置
-	Redis RedisConfig
+	Redis *RedisConfig
 
 	//etcd配置
-	Etcd EtcdConfig
+	Etcd *EtcdConfig
 
 	//consul配置
-	Consul ConsulConfig
+	Consul *ConsulConfig
 
-	Jwt JwtConfig
+	Jwt *JwtConfig
 
-	Elastic ElasticConfig
+	Elastic *ElasticConfig
 
-	RabbitMq RabbitMqConfig
+	RabbitMq *RabbitMqConfig
 }
 
 type ServerConfig struct {
@@ -38,17 +36,13 @@ type ServerConfig struct {
 	GrpcPort   int    `json:"grpcPort"`
 }
 
-type SnowIdConfig struct {
-	Node int `json:"node"`
-}
-
-type ClusterConfig struct {
-	Node int `json:"node"`
-}
-
 type LogConfig struct {
 	Level string `json:"level"`
 }
+type SnowIdConfig struct {
+	Keys []string `json:"keys"`
+}
+
 type GormConfig struct {
 	Url                         string `json:"url"`
 	LogLevel                    string `json:"logLevel"`
@@ -66,7 +60,11 @@ type RedisConfig struct {
 }
 
 type EtcdConfig struct {
-	Url []string `json:"url"`
+	EnableTls bool     `json:"enableTls"`
+	CaCrt     string   `json:"caCrt"`
+	ClientKey string   `json:"clientKey"`
+	ClientCrt string   `json:"clientCrt"`
+	Url       []string `json:"url"`
 }
 type ConsulConfig struct {
 	Url string `json:"url"`

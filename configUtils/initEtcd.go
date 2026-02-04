@@ -2,7 +2,10 @@ package configUtils
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"log"
+	"os"
 	"time"
 
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
@@ -35,11 +38,35 @@ func NewKratosEtcdClient(etcdClient *clientv3.Client) *etcd.Registry {
 	return r
 }
 
-func NewEtcdClient(allConfig *AllConfig) *clientv3.Client {
+func NewEtcdClient(allConfig *AllConfig, logger *zap.Logger) *clientv3.Client {
+	var crt tls.Config
+	if allConfig.Etcd.EnableTls {
+		caCrtData, err := os.ReadFile(allConfig.Etcd.CaCrt)
+		if err != nil {
+			logger.Sugar().Fatal("读取CA根证书失败: ", err.Error())
+		}
+		// 初始化证书池，nil表示基于系统根证书池，若仅信任自定义CA则用x509.NewCertPool()
+		certPool := x509.NewCertPool()
+		// 将CA证书添加到证书池，解析失败会返回false
+		if !certPool.AppendCertsFromPEM(caCrtData) {
+			logger.Sugar().Fatal("解析CA根证书失败，证书格式错误")
+		}
 
-	//指定所有的endpoints
+		clientCert, err := tls.LoadX509KeyPair(allConfig.Etcd.ClientCrt, allConfig.Etcd.ClientKey)
+		if err != nil {
+			logger.Sugar().Fatal("加载客户端证书/私钥对失败: ", err.Error())
+		}
+		crt = tls.Config{
+			ServerName:   "etcd",
+			RootCAs:      certPool,
+			Certificates: []tls.Certificate{clientCert},
+		}
+	}
+
+	//创建etcd配置
 	etcdConfig := clientv3.Config{
 		Endpoints: allConfig.Etcd.Url,
+		TLS:       &crt,
 	}
 
 	//3.3x版本以后，超时不会直接通过error返回，必须要使用Status方法判断
