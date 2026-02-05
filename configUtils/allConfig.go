@@ -4,46 +4,46 @@ type AllConfig struct {
 	Mode string `json:"mode"`
 
 	//服务配置
-	Server *ServerConfig
+	Server *serverConfig
 
-	SnowId *SnowIdConfig
+	SnowId *snowIdConfig
 
 	//日志配置
-	Log *LogConfig
+	Log *logConfig
 
 	//数据库配置
-	Gorm *GormConfig
+	Gorm *gormConfig
 
 	//redis配置
-	Redis *RedisConfig
+	Redis *redisConfig
 
 	//etcd配置
-	Etcd *EtcdConfig
+	Etcd *etcdConfig
 
 	//consul配置
-	Consul *ConsulConfig
+	Consul *consulConfig
 
-	Jwt *JwtConfig
+	Jwt *jwtConfig
 
-	Elastic *ElasticConfig
+	Elastic *elasticConfig
 
-	RabbitMq *RabbitMqConfig
+	RabbitMq *rabbitMqConfig
 }
 
-type ServerConfig struct {
+type serverConfig struct {
 	ServerName string `json:"serverName"`
 	HttpPort   int    `json:"httpPort"`
 	GrpcPort   int    `json:"grpcPort"`
 }
 
-type LogConfig struct {
+type logConfig struct {
 	Level string `json:"level"`
 }
-type SnowIdConfig struct {
+type snowIdConfig struct {
 	Keys []string `json:"keys"`
 }
 
-type GormConfig struct {
+type gormConfig struct {
 	Url                         string `json:"url"`
 	LogLevel                    string `json:"logLevel"`
 	SlowSqlMillSecond           int    `json:"slowSqlMillSecond"`
@@ -53,32 +53,32 @@ type GormConfig struct {
 	//是否翻译错误，比如主键冲突，你想用gorm的DUPLICATE KEY去检查是不行的，必须要先翻译
 	TransError bool `json:"transError"`
 }
-type RedisConfig struct {
+type redisConfig struct {
 	IsSingle   bool     `json:"isSingle"`
 	SingleUrl  string   `json:"singleUrl"`
 	ClusterUrl []string `json:"ClusterUrl"`
 }
 
-type EtcdConfig struct {
+type etcdConfig struct {
 	EnableTls bool     `json:"enableTls"`
 	CaCrt     string   `json:"caCrt"`
 	ClientKey string   `json:"clientKey"`
 	ClientCrt string   `json:"clientCrt"`
 	Url       []string `json:"url"`
 }
-type ConsulConfig struct {
+type consulConfig struct {
 	Url string `json:"url"`
 }
 
-type JwtConfig struct {
+type jwtConfig struct {
 	Secret  string `json:"secret"`
 	Role    string `json:"role"`
 	Expired int    `json:"expired"` //second
 }
-type ElasticConfig struct {
+type elasticConfig struct {
 	Url []string `json:"url"`
 }
-type RabbitMqConfig struct {
+type rabbitMqConfig struct {
 	Url string `json:"url"`
 }
 

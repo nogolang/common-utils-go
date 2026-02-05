@@ -40,6 +40,7 @@ func NewKratosEtcdClient(etcdClient *clientv3.Client) *etcd.Registry {
 
 func NewEtcdClient(allConfig *AllConfig, logger *zap.Logger) *clientv3.Client {
 	var crt tls.Config
+	var etcdConfig clientv3.Config
 	if allConfig.Etcd.EnableTls {
 		caCrtData, err := os.ReadFile(allConfig.Etcd.CaCrt)
 		if err != nil {
@@ -61,12 +62,15 @@ func NewEtcdClient(allConfig *AllConfig, logger *zap.Logger) *clientv3.Client {
 			RootCAs:      certPool,
 			Certificates: []tls.Certificate{clientCert},
 		}
-	}
-
-	//创建etcd配置
-	etcdConfig := clientv3.Config{
-		Endpoints: allConfig.Etcd.Url,
-		TLS:       &crt,
+		//创建etcd配置
+		etcdConfig = clientv3.Config{
+			Endpoints: allConfig.Etcd.Url,
+			TLS:       &crt,
+		}
+	} else {
+		etcdConfig = clientv3.Config{
+			Endpoints: allConfig.Etcd.Url,
+		}
 	}
 
 	//3.3x版本以后，超时不会直接通过error返回，必须要使用Status方法判断
