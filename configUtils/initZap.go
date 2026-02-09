@@ -12,6 +12,10 @@ import (
 
 func NewZapAtomicLevel(allConfig *AllConfig) *zap.AtomicLevel {
 	level := zap.NewAtomicLevel()
+	if allConfig.Log == nil {
+		level.SetLevel(zapcore.InfoLevel)
+		return &level
+	}
 	switch allConfig.Log.Level {
 	case "debug":
 		level.SetLevel(zapcore.DebugLevel)

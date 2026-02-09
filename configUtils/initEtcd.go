@@ -21,11 +21,12 @@ import (
 )
 
 // 同时返回etcd-kratos-registry和etcd client
-func NewKratosEtcdClient(etcdClient *clientv3.Client) *etcd.Registry {
+func NewKratosEtcdClient(etcdClient *clientv3.Client, logger *zap.Logger) *etcd.Registry {
 	r := etcd.New(etcdClient,
-		etcd.RegisterTTL(time.Second*5),
+		//注册到etcd中的租约TTL
+		etcd.RegisterTTL(time.Second*15),
 	)
-	log.Println("连接etcd成功")
+	logger.Sugar().Info("连接etcd成功")
 
 	selector.SetGlobalSelector(random.NewBuilder())
 
@@ -33,8 +34,7 @@ func NewKratosEtcdClient(etcdClient *clientv3.Client) *etcd.Registry {
 	//  这样dtm就可以直接使用资源服务的服务名称去调用了，而不用指定资源服务的的服务地址
 	//  并且dtm自身的地址也可以通过discovery:///dtmservice来获取（前提我们在dtm启动的时配置了）
 	//  这样就可以用dtm集群了
-	resolver.Register(
-		discovery.NewBuilder(r, discovery.WithInsecure(true)))
+	resolver.Register(discovery.NewBuilder(r, discovery.WithInsecure(true)))
 	return r
 }
 

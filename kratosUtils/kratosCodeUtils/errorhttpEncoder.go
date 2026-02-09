@@ -6,12 +6,13 @@ import (
 	rawHttp "net/http"
 
 	kratosHttp "github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/nogolang/common-utils-go/grpcUtils"
 	"github.com/nogolang/common-utils-go/httpUtils/httpCodeUtils"
 )
 
 // 定义kratos http返回给前台时候的数值，我们要包装一层data
 // 这样做是为了契合gin版本，这样前台无需任何变动
-var ResponseEncoder = func(w rawHttp.ResponseWriter, r *rawHttp.Request, v interface{}) error {
+var HttpResponseEncoder = func(w rawHttp.ResponseWriter, r *rawHttp.Request, v interface{}) error {
 	// 通过Request Header的Accept中提取出对应的编码器
 	// 如果找不到则忽略报错，并使用默认json编码器
 	codec, _ := kratosHttp.CodecForRequest(r, "Accept")
@@ -32,9 +33,9 @@ var ResponseEncoder = func(w rawHttp.ResponseWriter, r *rawHttp.Request, v inter
 }
 
 // 定义kratos http的错误响应编码器
-var ServerErrorEncoder = func(w rawHttp.ResponseWriter, r *rawHttp.Request, err error) {
-	//这里要转换到我们自己的错误
-	myError := FormErrorMy(err)
+var ServerHttpErrorEncoder = func(w rawHttp.ResponseWriter, r *rawHttp.Request, err error) {
+	//这里要转换到我们自己的错误，因为是grpc转换到http
+	myError := grpcUtils.FormGrpcErrorToMy(err)
 	w.Header().Set("Content-Type", "application/json")
 	// 设置HTTP Status Code
 	w.WriteHeader(myError.Status)

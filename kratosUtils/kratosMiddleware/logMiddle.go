@@ -10,7 +10,7 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport"
-	"github.com/nogolang/common-utils-go/kratosUtils/kratosCodeUtils"
+	"github.com/nogolang/common-utils-go/grpcUtils"
 	pkgError "github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -60,7 +60,7 @@ func LoggerServerMiddleware(logger *zap.Logger) middleware.Middleware {
 
 			//解析出我们的错误，里面会自动判断是自定义的错误还是kratos的错误
 			//最后都会转换到自定义的错误
-			myError := kratosCodeUtils.FormErrorMy(err)
+			myError := grpcUtils.FormGrpcErrorToMy(err)
 			if myError != nil {
 				//这里status对应的是code，也就是http和grpc的状态码
 				//而我们自定义的code对应的是reason
@@ -84,7 +84,9 @@ func LoggerServerMiddleware(logger *zap.Logger) middleware.Middleware {
 						zap.Any("metadata", metadata),
 					)
 					logger.Info(kindAndMethodAndCode, fields...)
-					//自定义错误直接返回回去
+					//自定义错误直接返回回去，这里返回grpc的error
+					//  我们调试，一路跟到grpc自己的fromError，kratos的error是实现了里面的GRPCStatus接口的
+					//  所以grpc会自动转换
 					return reply, err
 				} else {
 					//如果是其他错误，没有经过我们处理过的
@@ -148,7 +150,7 @@ func LoggerClientMiddleware(logger *zap.Logger) middleware.Middleware {
 
 			//解析出我们的错误，里面会自动判断是自定义的错误还是kratos的错误
 			//最后都会转换到自定义的错误
-			myError := kratosCodeUtils.FormErrorMy(err)
+			myError := grpcUtils.FormGrpcErrorToMy(err)
 			if myError != nil {
 				//这里status对应的是code，也就是http和grpc的状态码
 				//而我们自定义的code对应的是reason
