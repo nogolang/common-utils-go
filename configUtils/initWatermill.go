@@ -19,7 +19,7 @@ func NewZapWaterLogger(logger *zap.Logger) watermill.LoggerAdapter {
 }
 
 // 这个router，是消费者需要使用的，生产者无需使用router
-func NewWaterRouter(allConfig *AllConfig,
+func NewWaterRouter(allConfig *CommonConfig,
 	waterLogger watermill.LoggerAdapter) *message.Router {
 	router, err := message.NewRouter(message.RouterConfig{}, nil)
 	if err != nil {

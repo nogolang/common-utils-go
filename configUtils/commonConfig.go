@@ -1,12 +1,17 @@
 package configUtils
 
-type AllConfig struct {
+type CommonConfig struct {
 	Mode string `json:"mode"`
 
 	//服务配置
 	Server *serverConfig
 
+	//当需要从etcd里获取唯一数字的时候，才需要配置
+	//  但是一般不会用，k8s更好
 	SnowId *snowIdConfig
+
+	//公共配置路径
+	CommonConfigPath []string `json:"commonConfigPath"`
 
 	//日志配置
 	Log *logConfig
@@ -28,6 +33,8 @@ type AllConfig struct {
 	Elastic *elasticConfig
 
 	RabbitMq *rabbitMqConfig
+
+	Upload *uploadConfig
 }
 
 type serverConfig struct {
@@ -41,6 +48,24 @@ type logConfig struct {
 }
 type snowIdConfig struct {
 	Keys []string `json:"keys"`
+}
+
+type uploadConfig struct {
+	NowUse    string     `json:"nowUse"`
+	AliYunOss *aliYunOss `json:"aliYunOss"`
+
+	//下面是form签名的限制条件
+	IncludeType   []string `json:"includeType"`
+	MinUploadSize string   `json:"minUploadSize"`
+	MaxUploadSize string   `json:"maxUploadSize"`
+}
+
+type aliYunOss struct {
+	AccessKeyId     string `json:"accessKeyId"`
+	AccessKeySecret string `json:"accessKeySecret"`
+	BucketName      string `json:"bucketName"`
+	Endpoint        string `json:"endpoint"`
+	Rigion          string `json:"rigion"`
 }
 
 type gormConfig struct {
@@ -76,14 +101,18 @@ type jwtConfig struct {
 	Expired int    `json:"expired"` //second
 }
 type elasticConfig struct {
-	Url []string `json:"url"`
+	CaCrt     string   `json:"caCrt"`
+	EnableTls bool     `json:"enableTls"`
+	Username  string   `json:"username"`
+	Password  string   `json:"password"`
+	Url       []string `json:"url"`
 }
 type rabbitMqConfig struct {
 	Url string `json:"url"`
 }
 
 // 判断开发还是生产环境
-func (receiver *AllConfig) IsDev() bool {
+func (receiver *CommonConfig) IsDev() bool {
 	if receiver.Mode == "dev" {
 		return true
 	} else if receiver.Mode == "prod" {

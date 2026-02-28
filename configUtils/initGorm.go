@@ -14,7 +14,7 @@ import (
 )
 
 // 初始化gorm的配置
-func getGormConfigCommon(logger *zap.Logger, allConfig *AllConfig) *gorm.Config {
+func getGormConfigCommon(logger *zap.Logger, allConfig *CommonConfig) *gorm.Config {
 	var gormLogLevel gormlogger.LogLevel
 	switch allConfig.Gorm.LogLevel {
 	case "info":
@@ -40,7 +40,7 @@ func getGormConfigCommon(logger *zap.Logger, allConfig *AllConfig) *gorm.Config 
 	return config
 }
 
-func SetGormThread(db *gorm.DB, allConfig *AllConfig) error {
+func SetGormThread(db *gorm.DB, allConfig *CommonConfig) error {
 	rawDb, err := db.DB()
 	if err != nil {
 		return err
@@ -52,7 +52,7 @@ func SetGormThread(db *gorm.DB, allConfig *AllConfig) error {
 }
 
 // NewGormConfig logger由外部注入进来
-func NewGorm(logger *zap.Logger, allConfig *AllConfig) *gorm.DB {
+func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
 	config := getGormConfigCommon(logger, allConfig)
 	//gormDb无需使用.session，它Open出来就是一个链式安全的实例
 	db, err := gorm.Open(mysql.Open(allConfig.Gorm.Url), config)

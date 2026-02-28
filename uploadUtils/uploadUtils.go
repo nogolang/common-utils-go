@@ -19,7 +19,21 @@ func GetRandomFileName(prefix string, ext string) string {
 	hashName := getHashName(fmt.Sprintf("%d", rand.Int32N(100000)))
 	newUUID, _ := uuid.NewUUID()
 	name := md5.Sum([]byte(newUUID.String()))
-	fileName := prefix + "/" + hashName + "/" + hex.EncodeToString(name[:]) +"."+ext
+	prefix = strings.TrimLeft(prefix, "/")
+	ext = strings.TrimLeft(ext, "image/")
+	fileName := prefix + "/" + hashName + "/" + hex.EncodeToString(name[:]) + "." + ext
+	return fileName
+}
+
+// 通过dataId获取文件名，因为我们要固定文件名称，比如品牌图片，我们每次选择图片，都会覆盖掉上一个图片
+func GetFullNameWithDataId(prefix string, ext string, dataId int64) string {
+	prefix = strings.TrimLeft(prefix, "/")
+	ext = strings.TrimLeft(ext, "image/")
+	//对dataId进行hash
+	dataIdHash := fmt.Sprintf("%x", md5.Sum([]byte(strconv.FormatInt(dataId, 10))))
+	//取前3位作为文件夹名称
+	dirPath := dataIdHash[:3]
+	fileName := prefix + "/" + dirPath + "/" + dataIdHash + "." + ext
 	return fileName
 }
 

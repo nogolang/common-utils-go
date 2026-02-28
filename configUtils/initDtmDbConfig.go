@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewDtmDbConfig(allConfig *AllConfig) *dtmcli.DBConf {
+func NewDtmDbConfig(allConfig *CommonConfig) *dtmcli.DBConf {
 	cfg, err := rawMysql.ParseDSN(allConfig.Gorm.Url)
 	if err != nil {
 		zap.L().Error("解析数据库连接字符串出错")

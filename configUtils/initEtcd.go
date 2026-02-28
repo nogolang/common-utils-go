@@ -38,19 +38,19 @@ func NewKratosEtcdClient(etcdClient *clientv3.Client, logger *zap.Logger) *etcd.
 	return r
 }
 
-func NewEtcdClient(allConfig *AllConfig, logger *zap.Logger) *clientv3.Client {
+func NewEtcdClient(allConfig *CommonConfig, logger *zap.Logger) *clientv3.Client {
 	var crt tls.Config
 	var etcdConfig clientv3.Config
 	if allConfig.Etcd.EnableTls {
 		caCrtData, err := os.ReadFile(allConfig.Etcd.CaCrt)
 		if err != nil {
-			logger.Sugar().Fatal("读取CA根证书失败: ", err.Error())
+			logger.Sugar().Fatal("读取etcd CA根证书失败: ", err.Error())
 		}
 		// 初始化证书池，nil表示基于系统根证书池，若仅信任自定义CA则用x509.NewCertPool()
 		certPool := x509.NewCertPool()
 		// 将CA证书添加到证书池，解析失败会返回false
 		if !certPool.AppendCertsFromPEM(caCrtData) {
-			logger.Sugar().Fatal("解析CA根证书失败，证书格式错误")
+			logger.Sugar().Fatal("解析etcd CA根证书失败，证书格式错误")
 		}
 
 		clientCert, err := tls.LoadX509KeyPair(allConfig.Etcd.ClientCrt, allConfig.Etcd.ClientKey)

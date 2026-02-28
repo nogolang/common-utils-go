@@ -1,6 +1,8 @@
 package httpCodeUtils
 
-import "fmt"
+import (
+	"fmt"
+)
 
 //
 /*
@@ -19,11 +21,10 @@ type Response struct {
 	//错误的信息，我们口语化的错误，参数错误
 	Message string `json:"message"`
 
+	Metadata map[string]string `json:"metadata"`
+
 	//返回的数据，在http里可以这样做，但是在grpc里不能这么做
 	Data interface{} `json:"data"`
-
-	//附加数据，用于grpc的附加数据
-	Metadata map[string]string `json:"metadata"`
 }
 
 // 实现error接口，返回给error
@@ -44,7 +45,6 @@ func (receiver *Response) WithMessage(newMessage string) *Response {
 	response := NewResponse(receiver.Status, receiver.Code, newMessage)
 	return response
 }
-
 func (receiver *Response) WithMetadata(metadata map[string]string) *Response {
 	response := NewResponse(receiver.Status, receiver.Code, receiver.Message)
 	response.Metadata = metadata

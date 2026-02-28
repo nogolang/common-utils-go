@@ -10,7 +10,7 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport"
-	"github.com/nogolang/common-utils-go/grpcUtils"
+	"github.com/nogolang/common-utils-go/kratosUtils/kratosCodeUtils"
 	pkgError "github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -60,7 +60,7 @@ func LoggerServerMiddleware(logger *zap.Logger) middleware.Middleware {
 
 			//解析出我们的错误，里面会自动判断是自定义的错误还是kratos的错误
 			//最后都会转换到自定义的错误
-			myError := grpcUtils.FormGrpcErrorToMy(err)
+			myError := kratosCodeUtils.FormError(err)
 			if myError != nil {
 				//这里status对应的是code，也就是http和grpc的状态码
 				//而我们自定义的code对应的是reason
@@ -150,7 +150,7 @@ func LoggerClientMiddleware(logger *zap.Logger) middleware.Middleware {
 
 			//解析出我们的错误，里面会自动判断是自定义的错误还是kratos的错误
 			//最后都会转换到自定义的错误
-			myError := grpcUtils.FormGrpcErrorToMy(err)
+			myError := kratosCodeUtils.FormError(err)
 			if myError != nil {
 				//这里status对应的是code，也就是http和grpc的状态码
 				//而我们自定义的code对应的是reason

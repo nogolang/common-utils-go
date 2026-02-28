@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewKratosConsulClient(allConfig *AllConfig) *consulRegister.Registry {
+func NewKratosConsulClient(allConfig *CommonConfig) *consulRegister.Registry {
 	client, err := consulApi.NewClient(&consulApi.Config{
 		Address: allConfig.Consul.Url,
 	})

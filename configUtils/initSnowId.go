@@ -16,6 +16,8 @@ import (
 type SnowId struct {
 	SnowMap map[string]*snowIdStruct
 
+	NowServiceName string
+
 	//程序关闭的时候，可以在平滑里释放租约
 	EtcdUtil *etcdUtils.EtcdUtils
 }
@@ -28,7 +30,7 @@ type snowIdStruct struct {
 
 // 测试的时候，因为是在idea里测试，idea可能读取不到，需要重新打开所有的idea才行
 // 我们可以直接在idea里设置环境变量去测试
-func NewSnowIdFromK8sEnv(allConfig *AllConfig, logger *zap.Logger) *SnowId {
+func NewSnowIdFromK8sEnv(allConfig *CommonConfig, logger *zap.Logger) *SnowId {
 	//开发环境就是为1
 	var num int
 	if allConfig.IsDev() {
@@ -54,26 +56,26 @@ func NewSnowIdFromK8sEnv(allConfig *AllConfig, logger *zap.Logger) *SnowId {
 
 	var snowId SnowId
 	snowId.SnowMap = make(map[string]*snowIdStruct)
-	var snowIdConfig snowIdStruct
-	snowIdConfig.Num = int32(num)
+	var cfg snowIdStruct
+	cfg.Num = int32(num)
 	node, err := snowflake.NewNode(int64(num))
 	if err != nil {
 		logger.Fatal("创建snowflake node失败", zap.Error(err))
 		return nil
 	}
-	snowIdConfig.Node = node
-	snowId.SnowMap["local"] = &snowIdConfig
+	cfg.Node = node
+	snowId.SnowMap[allConfig.Server.ServerName] = &cfg
+	snowId.NowServiceName = allConfig.Server.ServerName
 	return &snowId
 }
 
-// 从第三方中间件获取唯一node
+// 从第三方中间件获取唯一node，支持根据指定的key获取
 func NewSnowIdFromEtcd(
 	etcdClient *etcdClientv3.Client,
 	logger *zap.Logger,
-	allConfig *AllConfig) *SnowId {
+	allConfig *CommonConfig) *SnowId {
 
-	// 这种形式，需要释放租约，暂时不考虑，直接使用k8s即可
-
+	// 这种形式，最好在程序结束的时候释放租约，暂时不考虑，直接使用k8s即可
 	var snowId SnowId
 	snowId.SnowMap = make(map[string]*snowIdStruct)
 	util := etcdUtils.NewEtcdUtils(etcdClient, logger)
@@ -107,6 +109,13 @@ func NewSnowIdFromEtcd(
 	return &snowId
 }
 
+func (receiver *SnowId) GetSnowNodeFromNowService() (*snowflake.Node, error) {
+	if receiver.SnowMap[receiver.NowServiceName] != nil {
+		return receiver.SnowMap[receiver.NowServiceName].Node, nil
+	}
+	return nil, errors.New("获取snowNode失败,key不存在")
+}
+
 func (receiver *SnowId) GetSnowNode(key string) (*snowflake.Node, error) {
 	if receiver.SnowMap[key] != nil {
 		return receiver.SnowMap[key].Node, nil
@@ -119,10 +128,9 @@ func (receiver *SnowId) GetSnowNum(key string) (int32, error) {
 	}
 	return 0, errors.New("获取snowNum失败,key不存在")
 }
-
-func (receiver *SnowId) GetSnowNumFromK8s() (int32, error) {
-	if receiver.SnowMap["local"] != nil {
-		return receiver.SnowMap["local"].Num, nil
+func (receiver *SnowId) GetSnowNumFromNowService() (int32, error) {
+	if receiver.SnowMap[receiver.NowServiceName] != nil {
+		return receiver.SnowMap[receiver.NowServiceName].Num, nil
 	}
 	return 0, errors.New("获取snowNum失败,key不存在")
 }

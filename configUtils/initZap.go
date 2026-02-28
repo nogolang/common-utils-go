@@ -10,7 +10,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-func NewZapAtomicLevel(allConfig *AllConfig) *zap.AtomicLevel {
+func NewZapAtomicLevel(allConfig *CommonConfig) *zap.AtomicLevel {
 	level := zap.NewAtomicLevel()
 	if allConfig.Log == nil {
 		level.SetLevel(zapcore.InfoLevel)
@@ -32,7 +32,7 @@ func NewZapAtomicLevel(allConfig *AllConfig) *zap.AtomicLevel {
 	return &level
 }
 
-func NewZapConfig(allConfig *AllConfig, level *zap.AtomicLevel) *zap.Logger {
+func NewZapConfig(allConfig *CommonConfig, level *zap.AtomicLevel) *zap.Logger {
 	var logger *zap.Logger
 
 	if allConfig.IsDev() {
@@ -54,7 +54,7 @@ func NewZapConfig(allConfig *AllConfig, level *zap.AtomicLevel) *zap.Logger {
 	return logger
 }
 
-func getEncoding(allConfig *AllConfig) zapcore.Encoder {
+func getEncoding(allConfig *CommonConfig) zapcore.Encoder {
 	var newEncoder zapcore.Encoder
 	encodeTime := func(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 		encoder.AppendString(t.Format(time.DateTime))
