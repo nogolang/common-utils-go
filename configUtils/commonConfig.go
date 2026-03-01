@@ -65,7 +65,7 @@ type aliYunOss struct {
 	AccessKeySecret string `json:"accessKeySecret"`
 	BucketName      string `json:"bucketName"`
 	Endpoint        string `json:"endpoint"`
-	Rigion          string `json:"rigion"`
+	Region          string `json:"region"`
 }
 
 type gormConfig struct {

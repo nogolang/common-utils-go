@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"io"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -25,8 +26,9 @@ type UploadAliYunOssSvc struct {
 func NewUploadAliYunOss(commonConfig *configUtils.CommonConfig) *UploadAliYunOssSvc {
 	cfg := oss.LoadDefaultConfig().
 		WithCredentialsProvider(credentials.
-			NewStaticCredentialsProvider(commonConfig.Upload.AliYunOss.AccessKeyId, commonConfig.Upload.AliYunOss.AccessKeySecret)).
-		WithRegion(commonConfig.Upload.AliYunOss.Rigion).
+			NewStaticCredentialsProvider(commonConfig.Upload.AliYunOss.AccessKeyId,
+				commonConfig.Upload.AliYunOss.AccessKeySecret)).
+		WithRegion(commonConfig.Upload.AliYunOss.Region).
 		WithEndpoint(commonConfig.Upload.AliYunOss.Endpoint)
 	// 创建OSS客户端
 	client := oss.NewClient(cfg)
@@ -139,8 +141,16 @@ func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSeco
 	//限制上传的大小，单位是字节
 	var conditionFileSize []interface{}
 	conditionFileSize = append(conditionFileSize, "content-length-range")
-	conditionFileSize = append(conditionFileSize, receiver.commonConfig.Upload.MinUploadSize)
-	conditionFileSize = append(conditionFileSize, receiver.commonConfig.Upload.MaxUploadSize)
+	minUploadSize, err := transFileSizeUnion(receiver.commonConfig.Upload.MinUploadSize)
+	if err != nil {
+		return nil, err
+	}
+	maxUploadSize, err := transFileSizeUnion(receiver.commonConfig.Upload.MaxUploadSize)
+	if err != nil {
+		return nil, err
+	}
+	conditionFileSize = append(conditionFileSize, minUploadSize)
+	conditionFileSize = append(conditionFileSize, maxUploadSize)
 
 	config.Conditions = append(config.Conditions, conditionDir,
 		//conditionStatus,
@@ -186,4 +196,24 @@ func (receiver *UploadAliYunOssSvc) IsUrlsExist(urlPath []string) (bool, error) 
 		}
 	}
 	return false, nil
+}
+
+func transFileSizeUnion(size string) (int64, error) {
+	if strings.Contains(size, "KB") {
+		split := strings.Split(size, "KB")
+		sizeInt, err := strconv.Atoi(split[0])
+		if err != nil {
+			return 0, errors.Wrap(err, "转换单位失败")
+		}
+		return int64(sizeInt * 1024), nil
+	}
+	if strings.Contains(size, "MB") {
+		split := strings.Split(size, "MB")
+		sizeInt, err := strconv.Atoi(split[0])
+		if err != nil {
+			return 0, errors.Wrap(err, "转换单位失败")
+		}
+		return int64(sizeInt * 1024 * 1024), nil
+	}
+	return 0, errors.New("不支持的转换单位，目前支持KB,MB")
 }
