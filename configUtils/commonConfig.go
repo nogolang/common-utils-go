@@ -35,6 +35,13 @@ type CommonConfig struct {
 	RabbitMq *rabbitMqConfig
 
 	Upload *uploadConfig
+
+	//dtm的配置，主要是配置日志之类的
+	Dtm *dtmConfig
+}
+
+type dtmConfig struct {
+	LogLevel string `json:"logLevel"`
 }
 
 type serverConfig struct {

@@ -184,9 +184,13 @@ func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSeco
 
 }
 
-func (receiver *UploadAliYunOssSvc) IsUrlsExist(urlPath []string) (bool, error) {
-	for _, keyPath := range urlPath {
-		exist, err := receiver.OssClient.IsObjectExist(context.Background(), receiver.commonConfig.Upload.AliYunOss.BucketName, keyPath)
+// 这里的key不包含前面的url前缀，单纯的path，比如store/1/xxx.png
+func (receiver *UploadAliYunOssSvc) IsUrlExist(urlPath []string) (bool, error) {
+	for _, url := range urlPath {
+		//转换到key
+		index := strings.Index(url, receiver.commonConfig.Upload.AliYunOss.Endpoint)
+		key := url[index+len(receiver.commonConfig.Upload.AliYunOss.Endpoint)+1:]
+		exist, err := receiver.OssClient.IsObjectExist(context.Background(), receiver.commonConfig.Upload.AliYunOss.BucketName, key)
 		if err != nil {
 			return false, errors.Wrap(err, "查询文件失败")
 		}
@@ -195,7 +199,7 @@ func (receiver *UploadAliYunOssSvc) IsUrlsExist(urlPath []string) (bool, error) 
 			return false, nil
 		}
 	}
-	return false, nil
+	return true, nil
 }
 
 func transFileSizeUnion(size string) (int64, error) {

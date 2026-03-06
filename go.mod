@@ -9,8 +9,9 @@ require (
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.3.0
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/cockroachdb/errors v1.12.0
-	github.com/dtm-labs/driver-kratos v0.0.9
 	github.com/dtm-labs/dtm v1.19.0
+	github.com/dtm-labs/dtmdriver v0.0.6
+	github.com/dtm-labs/dtmdriver-kratos v0.0.11
 	github.com/elastic/elastic-transport-go/v8 v8.8.0
 	github.com/elastic/go-elasticsearch/v8 v8.19.1
 	github.com/fsnotify/fsnotify v1.9.0
@@ -20,12 +21,12 @@ require (
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20251217105121-fb8e43efb207
 	github.com/go-kratos/kratos/v2 v2.9.2
 	github.com/go-playground/validator/v10 v10.30.0
+	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/consul/api v1.33.0
 	github.com/jinzhu/copier v0.4.0
 	github.com/nogolang/gorm-zap v1.0.1
-	github.com/nogolang/kratos-traefik-etcd v1.0.7
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.17.2
 	github.com/samber/lo v1.52.0
@@ -56,8 +57,6 @@ require (
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/dtm-labs/dtmdriver v0.0.6 // indirect
-	github.com/dtm-labs/dtmdriver-kratos v0.0.10 // indirect
 	github.com/dtm-labs/logger v0.0.2 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
@@ -70,7 +69,6 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
-	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/goccy/go-yaml v1.18.0 // indirect

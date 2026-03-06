@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/dtm-labs/dtmdriver"
+	driver "github.com/dtm-labs/dtmdriver-kratos"
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2/selector"
 	"github.com/go-kratos/kratos/v2/selector/random"
@@ -15,10 +17,13 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/resolver"
-
-	// 导入 kratos 的 dtm 驱动
-	_ "github.com/dtm-labs/driver-kratos"
 )
+
+func init() {
+	if err := dtmdriver.Use(driver.DriverName); err != nil {
+		panic(err)
+	}
+}
 
 // 同时返回etcd-kratos-registry和etcd client
 func NewKratosEtcdClient(etcdClient *clientv3.Client, logger *zap.Logger) *etcd.Registry {
