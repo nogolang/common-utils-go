@@ -1,8 +1,8 @@
 package configUtils
 
-type CommonConfig struct {
-	Mode string `json:"mode"`
+import "os"
 
+type CommonConfig struct {
 	//服务配置
 	Server *serverConfig
 
@@ -118,14 +118,11 @@ type rabbitMqConfig struct {
 	Url string `json:"url"`
 }
 
-// 判断开发还是生产环境
+// 判断是否是开发环境
 func (receiver *CommonConfig) IsDev() bool {
-	if receiver.Mode == "dev" {
-		return true
-	} else if receiver.Mode == "prod" {
+	isProd := os.Getenv("PROD")
+	if isProd == "" {
 		return false
-	} else if receiver.Mode == "" {
-		return true
 	}
 	return true
 }
