@@ -119,7 +119,7 @@ type rabbitMqConfig struct {
 }
 
 // 判断是否是开发环境
-func (receiver *CommonConfig) IsDev() bool {
+func IsDev() bool {
 	isProd := os.Getenv("PROD")
 	if isProd == "" {
 		return false

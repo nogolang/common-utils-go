@@ -35,17 +35,17 @@ func NewZapAtomicLevel(allConfig *CommonConfig) *zap.AtomicLevel {
 func NewZapConfig(allConfig *CommonConfig, level *zap.AtomicLevel) *zap.Logger {
 	var logger *zap.Logger
 
-	if allConfig.IsDev() {
+	if IsDev() {
 		//输出日志，向控制台输出，如果设置的是warn，那么info是不会输出的
-		devCore := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), level)
+		devCore := zapcore.NewCore(getEncoding(), getConsoleWriter(), level)
 		//这里不添加本身的日志堆栈和caller信息，而是输出错误堆栈信息，因为我们的日志是放到中间件的
 		//  所以caller是中间件，所以有和没有caller没有区别，看错误堆栈信息即可
 		logger = zap.New(devCore)
 	} else {
 		//输出日志，向文件输出，这里同时输出info和error文件
 		//error，fatal等是固定向error文件输出的
-		prodCoreAll := zapcore.NewCore(getEncoding(allConfig), getLogWriterAll(), level)
-		prodCoreError := zapcore.NewCore(getEncoding(allConfig), getLogWriterError(), zapcore.ErrorLevel)
+		prodCoreAll := zapcore.NewCore(getEncoding(), getLogWriterAll(), level)
+		prodCoreError := zapcore.NewCore(getEncoding(), getLogWriterError(), zapcore.ErrorLevel)
 		logger = zap.New(zapcore.NewTee(prodCoreAll, prodCoreError))
 	}
 	//这里使用了wire，严格准守di原则
@@ -54,12 +54,12 @@ func NewZapConfig(allConfig *CommonConfig, level *zap.AtomicLevel) *zap.Logger {
 	return logger
 }
 
-func getEncoding(allConfig *CommonConfig) zapcore.Encoder {
+func getEncoding() zapcore.Encoder {
 	var newEncoder zapcore.Encoder
 	encodeTime := func(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 		encoder.AppendString(t.Format(time.DateTime))
 	}
-	if allConfig.IsDev() {
+	if IsDev() {
 		config := zap.NewDevelopmentEncoderConfig()
 		config.EncodeTime = encodeTime
 		newEncoder = zapcore.NewConsoleEncoder(config)

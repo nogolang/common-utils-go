@@ -1,16 +1,15 @@
 package configUtils
 
 import (
-	"log"
-	"strconv"
-	"strings"
-
 	"github.com/bwmarrin/snowflake"
 	"github.com/cockroachdb/errors"
 	"github.com/nogolang/common-utils-go/etcdUtils"
 	"github.com/spf13/viper"
 	etcdClientv3 "go.etcd.io/etcd/client/v3"
 	"go.uber.org/zap"
+	"log"
+	"strconv"
+	"strings"
 )
 
 type SnowId struct {
@@ -33,7 +32,7 @@ type snowIdStruct struct {
 func NewSnowIdFromK8sEnv(allConfig *CommonConfig, logger *zap.Logger) *SnowId {
 	//开发环境就是为1
 	var num int
-	if allConfig.IsDev() {
+	if IsDev() {
 		num = 1
 	} else {
 		err := viper.BindEnv("POD_NAME")
