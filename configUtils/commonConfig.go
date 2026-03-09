@@ -121,7 +121,7 @@ type rabbitMqConfig struct {
 // 判断是否是开发环境
 func IsDev() bool {
 	isProd := os.Getenv("PROD")
-	if isProd == "" {
+	if isProd != "" {
 		return false
 	}
 	return true
