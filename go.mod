@@ -1,6 +1,6 @@
 module github.com/nogolang/common-utils-go
 
-go 1.25.3
+go 1.26.1
 
 require (
 	buf.build/go/protovalidate v1.1.0
