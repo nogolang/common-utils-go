@@ -76,7 +76,7 @@ type aliYunOss struct {
 }
 
 type gormConfig struct {
-	UseUrl                      bool              `json:"useUrl"`
+	NoUrl                       bool              `json:"noUrl"`
 	Url                         string            `json:"url"`
 	Username                    string            `json:"username"`
 	Password                    string            `json:"password"`

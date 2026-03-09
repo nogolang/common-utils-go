@@ -3,8 +3,6 @@ package configUtils
 import (
 	"time"
 
-	//这是我们自己的包，因为要导入私人包的原因，把GOPRIVATE=设置为了自己的包
-	//但是此时就不走代理了，所以我们要在环境变量里设置一下，让它置空
 	mysqlUtil "github.com/go-sql-driver/mysql"
 	"github.com/nogolang/gorm-zap/gormZap"
 	"go.uber.org/zap"
@@ -56,9 +54,8 @@ func SetGormThread(db *gorm.DB, allConfig *CommonConfig) error {
 func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
 	config := getGormConfigCommon(logger, allConfig)
 	finalDns := ""
-	if allConfig.Gorm.UseUrl {
-		finalDns = allConfig.Gorm.Url
-	} else {
+	//如果不显示的配置不使用url，那默认就是使用url
+	if allConfig.Gorm.NoUrl {
 		cfg := mysqlUtil.NewConfig()
 		cfg.DBName = allConfig.Gorm.Database
 		cfg.User = allConfig.Gorm.Username
@@ -66,6 +63,8 @@ func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
 		cfg.Addr = allConfig.Gorm.Host
 		cfg.Params = allConfig.Gorm.Param
 		finalDns = cfg.FormatDSN()
+	} else {
+		finalDns = allConfig.Gorm.Url
 	}
 
 	//gormDb无需使用.session，它Open出来就是一个链式安全的实例
