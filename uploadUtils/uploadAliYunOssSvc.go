@@ -26,8 +26,8 @@ type UploadAliYunOssSvc struct {
 func NewUploadAliYunOss(commonConfig *configUtils.CommonConfig) *UploadAliYunOssSvc {
 	cfg := oss.LoadDefaultConfig().
 		WithCredentialsProvider(credentials.
-			NewStaticCredentialsProvider(commonConfig.Upload.AliYunOss.AccessKeyId,
-				commonConfig.Upload.AliYunOss.AccessKeySecret)).
+			NewStaticCredentialsProvider(commonConfig.AliYunAccount.AccessKeyId,
+				commonConfig.AliYunAccount.AccessKeySecret)).
 		WithRegion(commonConfig.Upload.AliYunOss.Region).
 		WithEndpoint(commonConfig.Upload.AliYunOss.Endpoint)
 	// 创建OSS客户端
@@ -166,14 +166,14 @@ func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSeco
 	encodedResult := base64.StdEncoding.EncodeToString(result)
 
 	//以指定的方式进行hash运算生成签名
-	h := hmac.New(sha1.New, []byte(receiver.commonConfig.Upload.AliYunOss.AccessKeySecret))
+	h := hmac.New(sha1.New, []byte(receiver.commonConfig.AliYunAccount.AccessKeySecret))
 	_, err = io.WriteString(h, encodedResult)
 	if err != nil {
 		return nil, errors.Wrap(err, "生成签名失败")
 	}
 	signedStr := base64.StdEncoding.EncodeToString(h.Sum(nil))
 	policyToken := UploadPolicyResponse{
-		AccessKeyId: receiver.commonConfig.Upload.AliYunOss.AccessKeyId,
+		AccessKeyId: receiver.commonConfig.AliYunAccount.AccessKeyId,
 		//Bucket域名的固定格式
 		Host:      "https://" + receiver.commonConfig.Upload.AliYunOss.BucketName + "." + receiver.commonConfig.Upload.AliYunOss.Endpoint,
 		Signature: signedStr,

@@ -8,8 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/dtm-labs/dtmdriver"
-	driver "github.com/dtm-labs/dtmdriver-kratos"
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2/selector"
 	"github.com/go-kratos/kratos/v2/selector/random"
@@ -19,13 +17,16 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
-func init() {
-	if err := dtmdriver.Use(driver.DriverName); err != nil {
-		panic(err)
-	}
-}
+//后续dtm直接通过service名称访问，不再需要利用驱动
+//func init() {
+//  //初始dtm的驱动
+//	if err := dtmdriver.Use(driver.DriverName); err != nil {
+//		panic(err)
+//	}
+//}
 
-// 同时返回etcd-kratos-registry和etcd client
+// NewKratosEtcdClient  同时返回etcd-kratos-registry ,后续我们不需要注册到etcd中
+// Deprecated: 已经不需要
 func NewKratosEtcdClient(etcdClient *clientv3.Client, logger *zap.Logger) *etcd.Registry {
 	r := etcd.New(etcdClient,
 		//注册到etcd中的租约TTL

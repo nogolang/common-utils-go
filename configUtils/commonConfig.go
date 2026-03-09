@@ -34,7 +34,8 @@ type CommonConfig struct {
 
 	RabbitMq *rabbitMqConfig
 
-	Upload *uploadConfig
+	AliYunAccount *aliYunAccount `json:"aliYunAccount"`
+	Upload        *uploadConfig
 
 	//dtm的配置，主要是配置日志之类的
 	Dtm *dtmConfig
@@ -57,6 +58,11 @@ type snowIdConfig struct {
 	Keys []string `json:"keys"`
 }
 
+type aliYunAccount struct {
+	AccessKeyId     string `json:"accessKeyId"`
+	AccessKeySecret string `json:"accessKeySecret"`
+}
+
 type uploadConfig struct {
 	NowUse    string     `json:"nowUse"`
 	AliYunOss *aliYunOss `json:"aliYunOss"`
@@ -68,11 +74,9 @@ type uploadConfig struct {
 }
 
 type aliYunOss struct {
-	AccessKeyId     string `json:"accessKeyId"`
-	AccessKeySecret string `json:"accessKeySecret"`
-	BucketName      string `json:"bucketName"`
-	Endpoint        string `json:"endpoint"`
-	Region          string `json:"region"`
+	BucketName string `json:"bucketName"`
+	Endpoint   string `json:"endpoint"`
+	Region     string `json:"region"`
 }
 
 type gormConfig struct {
