@@ -164,7 +164,7 @@ func LoggerClientMiddleware(logger *zap.Logger) middleware.Middleware {
 
 				//如果不是额外的错误，而是我们用status.new（原生grpc）或者errors.new（kratos)创建的错误
 				//  那么一定会被转换到kratos的错误
-				if code != errors.UnknownCode {
+				if code != errors.UnknownCode && code != 504 {
 					//一般来说，参数错误，业务错误，都应该直接返回出去，而非打印无意义的error日志
 					//如果是那种无法预知的错误，我们才会打印error日志
 					//参数错误这种，前台不弹框提示信息，但在前台控制台显示即可，方便人员排查
