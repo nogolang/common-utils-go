@@ -42,11 +42,13 @@ func NewZapConfig(allConfig *CommonConfig, level *zap.AtomicLevel) *zap.Logger {
 		//  所以caller是中间件，所以有和没有caller没有区别，看错误堆栈信息即可
 		logger = zap.New(devCore)
 	} else {
-		//输出日志，向文件输出，这里同时输出info和error文件
-		//error，fatal等是固定向error文件输出的
-		prodCoreAll := zapcore.NewCore(getEncoding(), getLogWriterAll(), level)
-		prodCoreError := zapcore.NewCore(getEncoding(), getLogWriterError(), zapcore.ErrorLevel)
-		logger = zap.New(zapcore.NewTee(prodCoreAll, prodCoreError))
+		//生产环境，因为放到pod里，所以也要向控制台和文件都输出
+		//  文件则要分为error和info
+		//后续看看日志收集是什么形式，再做调整
+		prodCoreConsole := zapcore.NewCore(getEncoding(), getConsoleWriter(), level)
+		prodFileInfo := zapcore.NewCore(getEncoding(), getLogWriterAll(), level)
+		prodFileError := zapcore.NewCore(getEncoding(), getLogWriterError(), zapcore.ErrorLevel)
+		logger = zap.New(zapcore.NewTee(prodCoreConsole, prodFileInfo, prodFileError))
 	}
 	//这里使用了wire，严格准守di原则
 	//但是有些地方可能不太方便传递logger对象，比如中间件的地方使用全局的也可以
