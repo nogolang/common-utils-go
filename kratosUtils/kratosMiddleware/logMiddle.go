@@ -119,6 +119,7 @@ func LoggerClientMiddleware(logger *zap.Logger) middleware.Middleware {
 				reason               string
 				message              string
 				metadata             map[string]string
+				endpoint             string
 				kind                 string
 				method               string
 				kindAndMethodAndCode string
@@ -127,6 +128,7 @@ func LoggerClientMiddleware(logger *zap.Logger) middleware.Middleware {
 
 			if info, ok := transport.FromClientContext(ctx); ok {
 				kind = info.Kind().String()
+				endpoint = info.Endpoint()
 				method = info.Operation()
 			} else {
 				newErr := pkgError.New("系统错误,无法从FromClientContext里拿到 kind和method")
@@ -158,7 +160,7 @@ func LoggerClientMiddleware(logger *zap.Logger) middleware.Middleware {
 				reason = myError.Code
 				message = myError.Message
 				metadata = myError.Metadata
-				kindAndMethodAndCode = fmt.Sprintf("[client] %s  %s  %d", kind, method, code)
+				kindAndMethodAndCode = fmt.Sprintf("[client] %s  %s/%s  %d", kind, endpoint, method, code)
 
 				//如果不是额外的错误，而是我们用status.new（原生grpc）或者errors.new（kratos)创建的错误
 				//  那么一定会被转换到kratos的错误
