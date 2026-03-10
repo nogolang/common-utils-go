@@ -1,9 +1,12 @@
 package configUtils
 
 import (
+	"context"
 	"path/filepath"
 
 	kuberegistry "github.com/go-kratos/kratos/contrib/registry/kubernetes/v2"
+	"github.com/go-kratos/kratos/v2/registry"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -27,7 +30,18 @@ func NewKratosRegisterK8s(logger *zap.Logger, allConfig *CommonConfig) *kuberegi
 		return nil
 	}
 	reg := kuberegistry.NewRegistry(set, kuberegistry.GetNamespace())
-
+	newUUID, err := uuid.NewUUID()
+	if err != nil {
+		logger.Fatal("newUUID error", zap.Error(err))
+		return nil
+	}
+	err = reg.Register(context.Background(), &registry.ServiceInstance{
+		ID:   newUUID.String(),
+		Name: allConfig.Server.ServerName,
+	})
+	if err != nil {
+		logger.Fatal("NewKratosRegisterK8s", zap.Error(err))
+	}
 	//开启start，才能监听pod变化
 	reg.Start()
 	return reg
