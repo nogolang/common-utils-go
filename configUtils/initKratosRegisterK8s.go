@@ -27,6 +27,9 @@ func NewKratosRegisterK8s(logger *zap.Logger, allConfig *CommonConfig) *kuberegi
 		return nil
 	}
 	reg := kuberegistry.NewRegistry(set, kuberegistry.GetNamespace())
+
+	//开启start，才能监听pod变化
+	reg.Start()
 	return reg
 }
 func getClientSet() (*kubernetes.Clientset, error) {
