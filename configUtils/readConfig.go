@@ -1,12 +1,24 @@
 package configUtils
 
 import (
+	"flag"
 	"log"
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
+
+func ParseConfigPath(p *string, name string, value string, usage string) {
+	if IsDev() {
+		flag.StringVar(p, "conf", "configs/dev.yaml",
+			"config path, eg: -conf configs/dev.yaml;other.yaml")
+	} else {
+		flag.StringVar(p, "conf", "configs/prod.yaml",
+			"config path, eg: -conf configs/prod.yaml;other.yaml")
+	}
+
+}
 
 // 从文件里获取配置，支持多个配置文件
 func ReadConfigInFile(configPath string) error {

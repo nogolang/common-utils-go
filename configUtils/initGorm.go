@@ -67,8 +67,6 @@ func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
 		finalDns = allConfig.Gorm.Url
 	}
 
-	logger.Info("看看地址", zap.String("url", finalDns))
-
 	//gormDb无需使用.session，它Open出来就是一个链式安全的实例
 	db, err := gorm.Open(mysql.Open(finalDns), config)
 	if err != nil {
