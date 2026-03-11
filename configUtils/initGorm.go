@@ -62,10 +62,13 @@ func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
 		cfg.Passwd = allConfig.Gorm.Password
 		cfg.Addr = allConfig.Gorm.Host
 		cfg.Params = allConfig.Gorm.Param
+		cfg.Net = "tcp"
 		finalDns = cfg.FormatDSN()
 	} else {
 		finalDns = allConfig.Gorm.Url
 	}
+
+	logger.Info("要连接的数据库", zap.String("url", finalDns))
 
 	//gormDb无需使用.session，它Open出来就是一个链式安全的实例
 	db, err := gorm.Open(mysql.Open(finalDns), config)
