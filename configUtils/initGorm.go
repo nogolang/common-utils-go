@@ -1,6 +1,7 @@
 package configUtils
 
 import (
+	"net/url"
 	"time"
 
 	mysqlUtil "github.com/go-sql-driver/mysql"
@@ -61,7 +62,16 @@ func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
 		cfg.User = allConfig.Gorm.Username
 		cfg.Passwd = allConfig.Gorm.Password
 		cfg.Addr = allConfig.Gorm.Host
-		cfg.Params = allConfig.Gorm.Param
+		urlValues, err := url.ParseQuery(allConfig.Gorm.Param)
+		if err != nil {
+			logger.Fatal("url解码失败", zap.Error(err))
+			return nil
+		}
+		dbParam := make(map[string]string)
+		for k, v := range urlValues {
+			dbParam[k] = v[0]
+		}
+		cfg.Params = dbParam
 		cfg.Net = "tcp"
 		finalDns = cfg.FormatDSN()
 	} else {
