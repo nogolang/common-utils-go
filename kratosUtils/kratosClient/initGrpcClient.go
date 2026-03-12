@@ -5,17 +5,63 @@ import (
 	"fmt"
 
 	kratosEtcd "github.com/go-kratos/kratos/contrib/registry/etcd/v2"
+	kuberegistry "github.com/go-kratos/kratos/contrib/registry/kubernetes/v2"
 	"github.com/go-kratos/kratos/v2/selector"
 	"github.com/go-kratos/kratos/v2/selector/filter"
 	"github.com/go-kratos/kratos/v2/selector/random"
 	kratosGrpc "github.com/go-kratos/kratos/v2/transport/grpc"
+	"github.com/nogolang/common-utils-go/configUtils"
 	"github.com/nogolang/common-utils-go/kratosUtils/kratosMiddleware"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	rawGrpc "google.golang.org/grpc"
 )
 
-func GetGrpcClient(logger *zap.Logger,
+// targetPort只有生产环境需要
+func GetGrpcClientWithK8s(logger *zap.Logger,
+	serverName string,
+	targetPort int,
+	kratosRegister *kuberegistry.Registry) (*rawGrpc.ClientConn, error) {
+	var allCallOption []kratosGrpc.ClientOption
+
+	//创建路由 Filter：筛选版本号为"xxx"的实例
+	//这里我注册的时候就填的空,所以也为空
+	filterVersion := filter.Version("")
+	allCallOption = append(allCallOption, kratosGrpc.WithNodeFilter(filterVersion))
+
+	//中间件
+	//allCallOption = append(allCallOption, kratosGrpc.WithMiddleware(kratosMiddleware.LoggerClientMiddleware(logger)))
+
+	//创建全局的负载均衡算法为random
+	//还有p2c,wrr，具体看官方和资料
+	//由于 gRPC 框架的限制，只能使用全局 balancer name 的方式来注入 selector
+	selector.SetGlobalSelector(random.NewBuilder())
+
+	if !configUtils.IsDev() {
+		allCallOption = append(allCallOption, kratosGrpc.WithEndpoint("discovery:///"+serverName))
+		allCallOption = append(allCallOption, kratosGrpc.WithDiscovery(kratosRegister))
+	} else {
+		//如果是生产环境，那么直接使用本地的ip和端口即可，这里是为了测试，实际这里的localhost应该改为对应的ip+port
+		//开发环境无需负载均衡，所以直接使用ip和端口
+		allCallOption = append(allCallOption, kratosGrpc.
+			WithEndpoint(fmt.Sprintf("%s:%d", "localhost", targetPort)))
+	}
+
+	//正常来说应该使用Dail，但是我们目前没有证书，只能使用Insecure
+	grpcClient, err := kratosGrpc.DialInsecure(
+		context.Background(),
+		allCallOption...,
+	)
+	if err != nil {
+		logger.Sugar().Error("服务发现错误", err)
+		return nil, err
+	}
+
+	return grpcClient, nil
+}
+
+// Deprecated: 采用k8s代替
+func GetGrpcClientWithEtcd(logger *zap.Logger,
 	serverName string,
 	kratosEtcdClient *kratosEtcd.Registry) (*rawGrpc.ClientConn, error) {
 	//创建全局的负载均衡算法为random
