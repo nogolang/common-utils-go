@@ -83,9 +83,12 @@ func NewRedisClient(allConfig *CommonConfig, logger *zap.Logger) *redis.Client {
 			//默认30分钟,-1为禁用
 			ConnMaxIdleTime: time.Minute * 30,
 		})
-
+		//@TODO 需要添加一些判断，不然报空制作，直接退出
+		if redisDB == nil {
+			logger.Fatal("redis初始化错误")
+			return nil
+		}
 		return redisDB
-
 	}
 
 	return nil

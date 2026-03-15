@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/cockroachdb/errors"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
@@ -18,7 +19,7 @@ func ReadConfigInFile(configPath string) error {
 		v.SetConfigFile(cfgPath)
 		err := v.ReadInConfig()
 		if err != nil {
-			log.Fatal("配置文件读取失败:", err)
+			return errors.Wrap(err, "配置文件读取失败")
 		}
 		v.OnConfigChange(func(in fsnotify.Event) {
 			log.Println(in.Name, in.String(), "配置文件更新了")
@@ -27,17 +28,20 @@ func ReadConfigInFile(configPath string) error {
 
 		//每个主配置文件里，可能又会有commonConfigPath
 		//  但是所有的配置文件，都要合并到主配置文件中
-		mergeAllConfig(v)
+		err = mergeAllConfig(v)
+		if err != nil {
+			return errors.Wrap(err, "配置文件合并失败")
+		}
 
 		//然后把合并后的实例，再合并到全局中
 		var temp map[string]any
 		err = v.Unmarshal(&temp)
 		if err != nil {
-			log.Fatal("配置文件序列化失败:", err)
+			return errors.Wrap(err, "配置文件序列化失败")
 		}
 		err = viper.MergeConfigMap(temp)
 		if err != nil {
-			log.Fatal("配置文件合并失败:", err)
+			return errors.Wrap(err, "配置文件合并失败")
 		}
 
 	}
@@ -45,7 +49,7 @@ func ReadConfigInFile(configPath string) error {
 	return nil
 }
 
-func mergeAllConfig(mainConfig *viper.Viper) {
+func mergeAllConfig(mainConfig *viper.Viper) error {
 	//读取common配置文件
 	allCommonConfigPath := mainConfig.GetStringSlice("commonConfigPath")
 	for _, cfgPath := range allCommonConfigPath {
@@ -66,13 +70,14 @@ func mergeAllConfig(mainConfig *viper.Viper) {
 		var temp map[string]any
 		err = v.Unmarshal(&temp)
 		if err != nil {
-			log.Fatal("配置文件序列化失败:", err)
+			return errors.Wrap(err, "配置文件序列化失败")
 		}
 		err = mainConfig.MergeConfigMap(temp)
 		if err != nil {
-			log.Fatal("配置文件合并失败:", err)
+			return errors.Wrap(err, "配置文件合并失败")
 		}
 	}
+	return nil
 }
 
 func GetCommonConfig() *CommonConfig {
@@ -80,6 +85,7 @@ func GetCommonConfig() *CommonConfig {
 	err := viper.Unmarshal(&commonConfig)
 	if err != nil {
 		log.Fatal("配置文件序列化失败:", err)
+		return nil
 	}
 	return &commonConfig
 }
