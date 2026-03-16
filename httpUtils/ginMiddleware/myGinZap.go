@@ -61,14 +61,6 @@ func MyGinZap(logger *zap.Logger) gin.HandlerFunc {
 			bodyArgsStr = marshal
 		}
 
-		fields := []zapcore.Field{
-			zap.Int("status", c.Writer.Status()),
-			zap.Any("args", bodyArgsStr),
-			zap.String("ip", c.ClientIP()),
-			//zap.String("user-agent", c.Request.UserAgent()),
-			zap.Duration("latency", latency),
-		}
-
 		//这里只当我们使用ctx.Error(err)把错误设置进去了，这里才会有值
 		if len(c.Errors) > 0 {
 			for _, e := range c.Errors {
@@ -80,6 +72,13 @@ func MyGinZap(logger *zap.Logger) gin.HandlerFunc {
 				var myResponse *httpCodeUtils.Response
 				if errors.As(err, &myResponse) {
 					//自定义错误都是返回前台的
+					fields := []zapcore.Field{
+						zap.Int("status", myResponse.Status),
+						zap.Any("args", bodyArgsStr),
+						zap.String("ip", c.ClientIP()),
+						//zap.String("user-agent", c.Request.UserAgent()),
+						zap.Duration("latency", latency),
+					}
 					fields = append(fields, zap.String("code", myResponse.Code))
 					fields = append(fields, zap.String("message", myResponse.Message))
 					newLogger.Info(allRequestStr, fields...)
@@ -93,6 +92,12 @@ func MyGinZap(logger *zap.Logger) gin.HandlerFunc {
 				} else {
 					//如果不是我们返回的错误，比如gorm的语句错误，或者其他的中间件的错误
 					//  那就返回500，这里的错误信息最好别返回，而是打印日志即可，前台就显示简单的信息
+					fields := []zapcore.Field{
+						zap.Int("status", http.StatusInternalServerError),
+						zap.Any("args", bodyArgsStr),
+						zap.String("ip", c.ClientIP()),
+						zap.Duration("latency", latency),
+					}
 					newLogger.Error(allRequestStr, fields...)
 					newLogger.Sugar().Error(fmt.Sprintf("%+v", err))
 					c.JSON(http.StatusInternalServerError, gin.H{
@@ -106,7 +111,12 @@ func MyGinZap(logger *zap.Logger) gin.HandlerFunc {
 		}
 
 		//如果调用过程中没有产生error，则打印info，然后返回即可
-		newLogger.Info(allRequestStr, fields...)
+		newLogger.Info(allRequestStr, []zapcore.Field{
+			zap.Int("status", http.StatusOK),
+			zap.Any("args", bodyArgsStr),
+			zap.String("ip", c.ClientIP()),
+			zap.Duration("latency", latency),
+		}...)
 		return
 	}
 }
