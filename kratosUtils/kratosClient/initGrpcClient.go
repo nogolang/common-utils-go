@@ -3,6 +3,7 @@ package kratosClient
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	kratosEtcd "github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	kuberegistry "github.com/go-kratos/kratos/contrib/registry/kubernetes/v2"
@@ -10,7 +11,6 @@ import (
 	"github.com/go-kratos/kratos/v2/selector/filter"
 	"github.com/go-kratos/kratos/v2/selector/random"
 	kratosGrpc "github.com/go-kratos/kratos/v2/transport/grpc"
-	"github.com/nogolang/common-utils-go/configUtils"
 	"github.com/nogolang/common-utils-go/kratosUtils/kratosMiddleware"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -20,7 +20,6 @@ import (
 // targetPort只有生产环境需要
 func GetGrpcClientWithK8s(logger *zap.Logger,
 	serverName string,
-	targetPort int,
 	kratosRegister *kuberegistry.Registry) (*rawGrpc.ClientConn, error) {
 	var allCallOption []kratosGrpc.ClientOption
 
@@ -37,14 +36,9 @@ func GetGrpcClientWithK8s(logger *zap.Logger,
 	//由于 gRPC 框架的限制，只能使用全局 balancer name 的方式来注入 selector
 	selector.SetGlobalSelector(random.NewBuilder())
 
-	if !configUtils.IsDev() {
-		allCallOption = append(allCallOption, kratosGrpc.WithEndpoint("discovery:///"+serverName))
+	allCallOption = append(allCallOption, kratosGrpc.WithEndpoint(serverName))
+	if strings.HasPrefix(serverName, "discovery:///") {
 		allCallOption = append(allCallOption, kratosGrpc.WithDiscovery(kratosRegister))
-	} else {
-		//如果是生产环境，那么直接使用本地的ip和端口即可，这里是为了测试，实际这里的localhost应该改为对应的ip+port
-		//开发环境无需负载均衡，所以直接使用ip和端口
-		allCallOption = append(allCallOption, kratosGrpc.
-			WithEndpoint(fmt.Sprintf("%s:%d", "localhost", targetPort)))
 	}
 
 	//正常来说应该使用Dail，但是我们目前没有证书，只能使用Insecure
