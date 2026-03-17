@@ -112,7 +112,11 @@ func MyGinZap(logger *zap.Logger) gin.HandlerFunc {
 
 		//如果调用过程中没有产生error，则打印info，然后返回即可
 		newLogger.Info(allRequestStr, []zapcore.Field{
-			zap.Int("status", http.StatusOK),
+			//如果是404之类的，那么是直接response里是没有的
+			//  但是gin会写入status
+			//如果我们control返回200，那么这里也会写入200
+			//如果是bind(不是should)，那么gin也会写入状态
+			zap.Int("status", c.Writer.Status()),
 			zap.Any("args", bodyArgsStr),
 			zap.String("ip", c.ClientIP()),
 			zap.Duration("latency", latency),
