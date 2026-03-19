@@ -47,11 +47,11 @@ type UploadUrlResponse struct {
 
 // UploadPolic用于在form表单上传的时候返回给前台
 type UploadPolicyResponse struct {
-	AccessKeyId string `json:"ossAccessKeyId"`
-	Host        string `json:"host"`
-	Signature   string `json:"signature"`
-	Policy      string `json:"policy"`
-	Key         string `json:"key"`
+	OssAccessKeyId string `json:"ossAccessKeyId"`
+	Host           string `json:"host"`
+	Signature      string `json:"signature"`
+	Policy         string `json:"policy"`
+	Key            string `json:"key"`
 }
 
 // 这是oss表单上传的配置，可以通过这些配置，生成policy，并且可以用于校验
@@ -173,7 +173,7 @@ func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSeco
 	}
 	signedStr := base64.StdEncoding.EncodeToString(h.Sum(nil))
 	policyToken := UploadPolicyResponse{
-		AccessKeyId: receiver.commonConfig.AliYunAccount.AccessKeyId,
+		OssAccessKeyId: receiver.commonConfig.AliYunAccount.AccessKeyId,
 		//Bucket域名的固定格式
 		Host:      "https://" + receiver.commonConfig.Upload.AliYunOss.BucketName + "." + receiver.commonConfig.Upload.AliYunOss.Endpoint,
 		Signature: signedStr,
