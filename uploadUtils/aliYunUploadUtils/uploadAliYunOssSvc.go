@@ -1,4 +1,4 @@
-package uploadUtils
+package aliYunUploadUtils
 
 import (
 	"context"
@@ -20,38 +20,24 @@ import (
 
 type UploadAliYunOssSvc struct {
 	OssClient    *oss.Client
-	commonConfig *configUtils.CommonConfig
+	CommonConfig *configUtils.CommonConfig
 }
 
-func NewUploadAliYunOss(commonConfig *configUtils.CommonConfig) *UploadAliYunOssSvc {
+func NewUploadAliYunOss(CommonConfig *configUtils.CommonConfig) *UploadAliYunOssSvc {
 	cfg := oss.LoadDefaultConfig().
 		WithCredentialsProvider(credentials.
-			NewStaticCredentialsProvider(commonConfig.AliYunAccount.AccessKeyId,
-				commonConfig.AliYunAccount.AccessKeySecret)).
-		WithRegion(commonConfig.Upload.AliYunOss.Region).
-		WithEndpoint(commonConfig.Upload.AliYunOss.Endpoint)
+			NewStaticCredentialsProvider(CommonConfig.AliYunAccount.AccessKeyId,
+				CommonConfig.AliYunAccount.AccessKeySecret)).
+		WithRegion(CommonConfig.Upload.AliYunOss.Region).
+		WithEndpoint(CommonConfig.Upload.AliYunOss.Endpoint)
 	// 创建OSS客户端
 	client := oss.NewClient(cfg)
 
 	handler := UploadAliYunOssSvc{
 		OssClient:    client,
-		commonConfig: commonConfig,
+		CommonConfig: CommonConfig,
 	}
 	return &handler
-}
-
-type UploadUrlResponse struct {
-	Url           string            `json:"url"`
-	SignedHeaders map[string]string `json:"signedHeaders"`
-}
-
-// UploadPolic用于在form表单上传的时候返回给前台
-type UploadPolicyResponse struct {
-	OssAccessKeyId string `json:"ossAccessKeyId"`
-	Host           string `json:"host"`
-	Signature      string `json:"signature"`
-	Policy         string `json:"policy"`
-	Key            string `json:"key"`
 }
 
 // 这是oss表单上传的配置，可以通过这些配置，生成policy，并且可以用于校验
@@ -68,7 +54,7 @@ func (receiver *UploadAliYunOssSvc) GetUploadUrl(uploadPath string, expired time
 	ext := path.Ext(uploadPath)
 	extNoPint := strings.Replace(ext, ".", "", -1)
 	result, err := receiver.OssClient.Presign(context.Background(), &oss.PutObjectRequest{
-		Bucket:      oss.Ptr(receiver.commonConfig.Upload.AliYunOss.BucketName),
+		Bucket:      oss.Ptr(receiver.CommonConfig.Upload.AliYunOss.BucketName),
 		Key:         oss.Ptr(uploadPath),
 		ContentType: oss.Ptr("image/" + extNoPint),
 	}, oss.PresignExpires(expired))
@@ -91,7 +77,7 @@ func (receiver *UploadAliYunOssSvc) GetUrlForPreview(uploadPath string, expired 
 	uploadPath = strings.TrimLeft(uploadPath, "/")
 	var res UploadUrlResponse
 	result, err := receiver.OssClient.Presign(context.Background(), &oss.GetObjectRequest{
-		Bucket: oss.Ptr(receiver.commonConfig.Upload.AliYunOss.BucketName),
+		Bucket: oss.Ptr(receiver.CommonConfig.Upload.AliYunOss.BucketName),
 		Key:    oss.Ptr(uploadPath),
 	}, oss.PresignExpires(expired))
 	if err != nil {
@@ -136,16 +122,16 @@ func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSeco
 	conditionFileType = append(conditionFileType, "in")
 	conditionFileType = append(conditionFileType, "$content-type")
 	//比如 []string{"image/png", "image/jpg", "image/jpeg"}
-	conditionFileType = append(conditionFileType, receiver.commonConfig.Upload.IncludeType)
+	conditionFileType = append(conditionFileType, receiver.CommonConfig.Upload.IncludeType)
 
 	//限制上传的大小，单位是字节
 	var conditionFileSize []interface{}
 	conditionFileSize = append(conditionFileSize, "content-length-range")
-	minUploadSize, err := transFileSizeUnion(receiver.commonConfig.Upload.MinUploadSize)
+	minUploadSize, err := transFileSizeUnion(receiver.CommonConfig.Upload.MinUploadSize)
 	if err != nil {
 		return nil, err
 	}
-	maxUploadSize, err := transFileSizeUnion(receiver.commonConfig.Upload.MaxUploadSize)
+	maxUploadSize, err := transFileSizeUnion(receiver.CommonConfig.Upload.MaxUploadSize)
 	if err != nil {
 		return nil, err
 	}
@@ -166,16 +152,16 @@ func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSeco
 	encodedResult := base64.StdEncoding.EncodeToString(result)
 
 	//以指定的方式进行hash运算生成签名
-	h := hmac.New(sha1.New, []byte(receiver.commonConfig.AliYunAccount.AccessKeySecret))
+	h := hmac.New(sha1.New, []byte(receiver.CommonConfig.AliYunAccount.AccessKeySecret))
 	_, err = io.WriteString(h, encodedResult)
 	if err != nil {
 		return nil, errors.Wrap(err, "生成签名失败")
 	}
 	signedStr := base64.StdEncoding.EncodeToString(h.Sum(nil))
 	policyToken := UploadPolicyResponse{
-		OssAccessKeyId: receiver.commonConfig.AliYunAccount.AccessKeyId,
+		OssAccessKeyId: receiver.CommonConfig.AliYunAccount.AccessKeyId,
 		//Bucket域名的固定格式
-		Host:      "https://" + receiver.commonConfig.Upload.AliYunOss.BucketName + "." + receiver.commonConfig.Upload.AliYunOss.Endpoint,
+		Host:      "https://" + receiver.CommonConfig.Upload.AliYunOss.BucketName + "." + receiver.CommonConfig.Upload.AliYunOss.Endpoint,
 		Signature: signedStr,
 		Policy:    encodedResult,
 		Key:       uploadPath,
@@ -188,9 +174,9 @@ func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSeco
 func (receiver *UploadAliYunOssSvc) IsUrlExist(urlPath []string) (bool, error) {
 	for _, url := range urlPath {
 		//转换到key
-		index := strings.Index(url, receiver.commonConfig.Upload.AliYunOss.Endpoint)
-		key := url[index+len(receiver.commonConfig.Upload.AliYunOss.Endpoint)+1:]
-		exist, err := receiver.OssClient.IsObjectExist(context.Background(), receiver.commonConfig.Upload.AliYunOss.BucketName, key)
+		index := strings.Index(url, receiver.CommonConfig.Upload.AliYunOss.Endpoint)
+		key := url[index+len(receiver.CommonConfig.Upload.AliYunOss.Endpoint)+1:]
+		exist, err := receiver.OssClient.IsObjectExist(context.Background(), receiver.CommonConfig.Upload.AliYunOss.BucketName, key)
 		if err != nil {
 			return false, errors.Wrap(err, "查询文件失败")
 		}

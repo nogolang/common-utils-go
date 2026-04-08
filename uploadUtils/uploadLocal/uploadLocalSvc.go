@@ -1,10 +1,11 @@
-package uploadUtils
+package uploadLocal
 
 import (
 	"os"
 	"path"
 
 	"github.com/nogolang/common-utils-go/fileUtils"
+	"github.com/nogolang/common-utils-go/uploadUtils"
 	"go.uber.org/zap"
 )
 
@@ -42,7 +43,7 @@ func (receiver *UploadLocalHandler) delete(pathName string) error {
 }
 
 func (receiver *UploadLocalHandler) UploadLocal(fileName string, data []byte) (string, error) {
-	fullPath := GetRandomFileName(fileName, ".jpg")
+	fullPath := uploadUtils.GetRandomFileName(fileName, ".jpg")
 	err := receiver.save(fullPath, data)
 
 	//返回给前台，则是url路径，不能用path处理

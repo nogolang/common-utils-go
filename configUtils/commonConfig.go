@@ -1,14 +1,23 @@
 package configUtils
 
-import "os"
+import (
+	"os"
+
+	"github.com/nogolang/common-utils-go/cloudUtils"
+	"github.com/nogolang/common-utils-go/consulUtils"
+	"github.com/nogolang/common-utils-go/dtmUtils"
+	"github.com/nogolang/common-utils-go/elasticUtils"
+	"github.com/nogolang/common-utils-go/etcdUtils"
+	"github.com/nogolang/common-utils-go/gormUtils"
+	"github.com/nogolang/common-utils-go/redisUtils"
+	"github.com/nogolang/common-utils-go/tokenUtils"
+	"github.com/nogolang/common-utils-go/uploadUtils"
+	"github.com/nogolang/common-utils-go/watermillUtils"
+)
 
 type CommonConfig struct {
 	//服务配置
 	Server *serverConfig
-
-	//当需要从etcd里获取唯一数字的时候，才需要配置
-	//  但是一般不会用，k8s更好
-	SnowId *snowIdConfig
 
 	//公共配置路径
 	CommonConfigPath []string `json:"commonConfigPath"`
@@ -17,32 +26,29 @@ type CommonConfig struct {
 	Log *logConfig
 
 	//数据库配置
-	Gorm *gormConfig
+	Gorm *gormUtils.GormConfig
 
 	//redis配置
-	Redis *redisConfig
+	Redis *redisUtils.RedisConfig
 
 	//etcd配置
-	Etcd *etcdConfig
+	Etcd *etcdUtils.EtcdConfig
 
 	//consul配置
-	Consul *consulConfig
+	Consul *consulUtils.ConsulConfig
 
-	Jwt *jwtConfig
+	Jwt *tokenUtils.JwtConfig
 
-	Elastic *elasticConfig
+	Elastic *elasticUtils.ElasticConfig
 
-	RabbitMq *rabbitMqConfig
-
-	AliYunAccount *aliYunAccount `json:"aliYunAccount"`
-	Upload        *uploadConfig
+	RabbitMq *watermillUtils.RabbitMqConfig
 
 	//dtm的配置，主要是配置日志之类的
-	Dtm *dtmConfig
-}
+	Dtm *dtmUtils.DtmConfig
 
-type dtmConfig struct {
-	LogLevel string `json:"logLevel"`
+	//阿里云账户
+	AliYunAccount *cloudUtils.AliYunAccount `json:"aliYunAccount"`
+	Upload        *uploadUtils.UploadConfig `json:"upload"`
 }
 
 type serverConfig struct {
@@ -53,79 +59,6 @@ type serverConfig struct {
 
 type logConfig struct {
 	Level string `json:"level"`
-}
-type snowIdConfig struct {
-	Keys []string `json:"keys"`
-}
-
-type aliYunAccount struct {
-	AccessKeyId     string `json:"accessKeyId"`
-	AccessKeySecret string `json:"accessKeySecret"`
-}
-
-type uploadConfig struct {
-	NowUse    string     `json:"nowUse"`
-	AliYunOss *aliYunOss `json:"aliYunOss"`
-
-	//下面是form签名的限制条件
-	IncludeType   []string `json:"includeType"`
-	MinUploadSize string   `json:"minUploadSize"`
-	MaxUploadSize string   `json:"maxUploadSize"`
-}
-
-type aliYunOss struct {
-	BucketName string `json:"bucketName"`
-	Endpoint   string `json:"endpoint"`
-	Region     string `json:"region"`
-}
-
-type gormConfig struct {
-	NoUrl                       bool   `json:"noUrl"`
-	Url                         string `json:"url"`
-	Username                    string `json:"username"`
-	Password                    string `json:"password"`
-	Host                        string `json:"host"`
-	Database                    string `json:"database"`
-	Param                       string `json:"param"`
-	LogLevel                    string `json:"logLevel"`
-	SlowSqlMillSecond           int    `json:"slowSqlMillSecond"`
-	DisableAutoCreateForeignKey bool   `json:"disableAutoCreateForeignKey"`
-	SingularTable               bool   `json:"singularTable"`
-	MaxOpenConn                 int    `json:"maxOpenConn"`
-	//是否翻译错误，比如主键冲突，你想用gorm的DUPLICATE KEY去检查是不行的，必须要先翻译
-	TransError bool `json:"transError"`
-}
-type redisConfig struct {
-	IsSingle   bool     `json:"isSingle"`
-	SingleUrl  string   `json:"singleUrl"`
-	ClusterUrl []string `json:"ClusterUrl"`
-}
-
-type etcdConfig struct {
-	EnableTls bool     `json:"enableTls"`
-	CaCrt     string   `json:"caCrt"`
-	ClientKey string   `json:"clientKey"`
-	ClientCrt string   `json:"clientCrt"`
-	Url       []string `json:"url"`
-}
-type consulConfig struct {
-	Url string `json:"url"`
-}
-
-type jwtConfig struct {
-	Secret  string `json:"secret"`
-	Role    string `json:"role"`
-	Expired int    `json:"expired"` //second
-}
-type elasticConfig struct {
-	CaCrt     string   `json:"caCrt"`
-	EnableTls bool     `json:"enableTls"`
-	Username  string   `json:"username"`
-	Password  string   `json:"password"`
-	Url       []string `json:"url"`
-}
-type rabbitMqConfig struct {
-	Url string `json:"url"`
 }
 
 // 判断是否是开发环境
