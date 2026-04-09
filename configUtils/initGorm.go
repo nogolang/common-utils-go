@@ -89,17 +89,12 @@ func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
 			return nil
 		}
 	} else if allConfig.Gorm.DatabaseType == "postgres" {
-		db, err := gorm.Open(postgres.Open(finalDns), config)
+		var err error
+		db, err = gorm.Open(postgres.Open(finalDns), config)
 		if err != nil {
 			logger.Fatal("gorm连接数据库失败", zap.Error(err))
 			return nil
 		}
-		err = SetGormThread(db, allConfig)
-		if err != nil {
-			logger.Fatal("设置gorm协成池失败", zap.Error(err))
-			return nil
-		}
-		return db
 	} else {
 		logger.Fatal("不支持的数据库类型", zap.String("databaseType", allConfig.Gorm.DatabaseType))
 		return nil
