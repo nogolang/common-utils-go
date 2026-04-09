@@ -1,14 +1,8 @@
 package gormUtils
 
 type GormConfig struct {
-	NoUrl                       bool   `json:"noUrl"`
 	DatabaseType                string `json:"databaseType"`
 	Url                         string `json:"url"`
-	Username                    string `json:"username"`
-	Password                    string `json:"password"`
-	Host                        string `json:"host"`
-	Database                    string `json:"database"`
-	Param                       string `json:"param"`
 	LogLevel                    string `json:"logLevel"`
 	SlowSqlMillSecond           int    `json:"slowSqlMillSecond"`
 	DisableAutoCreateForeignKey bool   `json:"disableAutoCreateForeignKey"`

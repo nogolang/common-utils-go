@@ -1,10 +1,8 @@
 package configUtils
 
 import (
-	"net/url"
 	"time"
 
-	mysqlUtil "github.com/go-sql-driver/mysql"
 	"github.com/nogolang/gorm-zap/gormZap"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
@@ -57,27 +55,28 @@ func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
 	config := getGormConfigCommon(logger, allConfig)
 	finalDns := ""
 	//如果不显示的配置不使用url，那默认就是使用url
-	if allConfig.Gorm.NoUrl {
-		cfg := mysqlUtil.NewConfig()
-		cfg.DBName = allConfig.Gorm.Database
-		cfg.User = allConfig.Gorm.Username
-		cfg.Passwd = allConfig.Gorm.Password
-		cfg.Addr = allConfig.Gorm.Host
-		urlValues, err := url.ParseQuery(allConfig.Gorm.Param)
-		if err != nil {
-			logger.Fatal("url解码失败", zap.Error(err))
-			return nil
-		}
-		dbParam := make(map[string]string)
-		for k, v := range urlValues {
-			dbParam[k] = v[0]
-		}
-		cfg.Params = dbParam
-		cfg.Net = "tcp"
-		finalDns = cfg.FormatDSN()
-	} else {
-		finalDns = allConfig.Gorm.Url
-	}
+	//这里后续放弃了，统一使用url形式
+	//if allConfig.Gorm.NoUrl {
+	//	cfg := mysqlUtil.NewConfig()
+	//	cfg.DBName = allConfig.Gorm.Database
+	//	cfg.User = allConfig.Gorm.Username
+	//	cfg.Passwd = allConfig.Gorm.Password
+	//	cfg.Addr = allConfig.Gorm.Host
+	//	urlValues, err := url.ParseQuery(allConfig.Gorm.Param)
+	//	if err != nil {
+	//		logger.Fatal("url解码失败", zap.Error(err))
+	//		return nil
+	//	}
+	//	dbParam := make(map[string]string)
+	//	for k, v := range urlValues {
+	//		dbParam[k] = v[0]
+	//	}
+	//	cfg.Params = dbParam
+	//	cfg.Net = "tcp"
+	//	finalDns = cfg.FormatDSN()
+	//} else {
+	//	finalDns = allConfig.Gorm.Url
+	//}
 
 	var db *gorm.DB
 	if allConfig.Gorm.DatabaseType == "" || allConfig.Gorm.DatabaseType == "mysql" {
