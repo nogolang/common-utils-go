@@ -8,6 +8,7 @@ import (
 	"github.com/nogolang/gorm-zap/gormZap"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
@@ -78,13 +79,33 @@ func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
 		finalDns = allConfig.Gorm.Url
 	}
 
-	//gormDb无需使用.session，它Open出来就是一个链式安全的实例
-	db, err := gorm.Open(mysql.Open(finalDns), config)
-	if err != nil {
-		logger.Fatal("gorm连接数据库失败", zap.Error(err))
+	var db *gorm.DB
+	if allConfig.Gorm.DatabaseType == "" || allConfig.Gorm.DatabaseType == "mysql" {
+		//gormDb无需使用.session，它Open出来就是一个链式安全的实例
+		var err error
+		db, err = gorm.Open(mysql.Open(finalDns), config)
+		if err != nil {
+			logger.Fatal("gorm连接数据库失败", zap.Error(err))
+			return nil
+		}
+	} else if allConfig.Gorm.DatabaseType == "postgres" {
+		db, err := gorm.Open(postgres.Open(finalDns), config)
+		if err != nil {
+			logger.Fatal("gorm连接数据库失败", zap.Error(err))
+			return nil
+		}
+		err = SetGormThread(db, allConfig)
+		if err != nil {
+			logger.Fatal("设置gorm协成池失败", zap.Error(err))
+			return nil
+		}
+		return db
+	} else {
+		logger.Fatal("不支持的数据库类型", zap.String("databaseType", allConfig.Gorm.DatabaseType))
 		return nil
 	}
-	err = SetGormThread(db, allConfig)
+
+	err := SetGormThread(db, allConfig)
 	if err != nil {
 		logger.Fatal("设置gorm协成池失败", zap.Error(err))
 		return nil
