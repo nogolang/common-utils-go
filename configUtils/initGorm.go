@@ -53,7 +53,7 @@ func SetGormThread(db *gorm.DB, allConfig *CommonConfig) error {
 // NewGormConfig logger由外部注入进来
 func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
 	config := getGormConfigCommon(logger, allConfig)
-	finalDns := ""
+	//finalDns := ""
 	//如果不显示的配置不使用url，那默认就是使用url
 	//这里后续放弃了，统一使用url形式
 	//if allConfig.Gorm.NoUrl {
@@ -79,6 +79,7 @@ func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
 	//}
 
 	var db *gorm.DB
+	finalDns := allConfig.Gorm.Url
 	if allConfig.Gorm.DatabaseType == "" || allConfig.Gorm.DatabaseType == "mysql" {
 		//gormDb无需使用.session，它Open出来就是一个链式安全的实例
 		var err error
