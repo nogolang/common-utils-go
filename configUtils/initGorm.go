@@ -106,6 +106,6 @@ func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
 		return nil
 	}
 
-	logger.Info("连接mysql成功")
+	logger.Info("连接数据库成功")
 	return db
 }
