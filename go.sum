@@ -391,6 +391,8 @@ github.com/natefinch/lumberjack v2.0.0+incompatible/go.mod h1:Wi9p2TTF5DG5oU+6Yf
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nogolang/gorm-zap v1.0.1 h1:BaEuFp4r3bbLhgAzl76zaEf+gFDLYTNk2bPMtUCzsJw=
 github.com/nogolang/gorm-zap v1.0.1/go.mod h1:8X38Gh90lCCe/L9uErmg7abZM4Tc8hEo+G09MXrxxrY=
+github.com/nogolang/gorm-zap v1.0.4 h1:YoWvmxr5HjP6tsamhkmedKit24KpyeDEN5v1cvBUGRA=
+github.com/nogolang/gorm-zap v1.0.4/go.mod h1:Bonk7vMsGgzfK6YJuPXchDC3A/UCiVoz5dkt/LEpph8=
 github.com/oklog/ulid v1.3.1 h1:EGfNDEx6MqHz8B3uNV6QAib1UR2Lm97sHi3ocA6ESJ4=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
