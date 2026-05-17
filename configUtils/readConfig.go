@@ -41,10 +41,10 @@ func ReadConfigInFile(configPath string) error {
 		v.WatchConfig()
 
 		//配置文件里，可能会有commonConfigPath用于引入其他配置文件
-		//err = mergeCommonConfig(v)
-		//if err != nil {
-		//	return errors.Wrap(err, "配置文件合并失败")
-		//}
+		err = mergeCommonConfig(v)
+		if err != nil {
+			return errors.Wrap(err, "配置文件合并失败")
+		}
 	}
 	return nil
 }
