@@ -49,11 +49,11 @@ type uploadOssConfigForSignature struct {
 }
 
 // 获取url签名用于传送文件，签名这种方式只能用于后台管理系统，不能用于对外的前面，因为缺少校验
-func (receiver *UploadAliYunOssSvc) GetUploadUrl(uploadPath string, expired time.Duration) (*UploadUrlResponse, error) {
+func (receiver *UploadAliYunOssSvc) GetUploadUrl(ctx context.Context, uploadPath string, expired time.Duration) (*UploadUrlResponse, error) {
 	var res UploadUrlResponse
 	ext := path.Ext(uploadPath)
 	extNoPint := strings.Replace(ext, ".", "", -1)
-	result, err := receiver.OssClient.Presign(context.Background(), &oss.PutObjectRequest{
+	result, err := receiver.OssClient.Presign(ctx, &oss.PutObjectRequest{
 		Bucket:      oss.Ptr(receiver.CommonConfig.Upload.AliYunOss.BucketName),
 		Key:         oss.Ptr(uploadPath),
 		ContentType: oss.Ptr("image/" + extNoPint),
@@ -71,12 +71,12 @@ func (receiver *UploadAliYunOssSvc) GetUploadUrl(uploadPath string, expired time
 }
 
 // 获取url签名，用于预览文件，比如我们阻止了公共访问读
-func (receiver *UploadAliYunOssSvc) GetUrlForPreview(uploadPath string, expired time.Duration) (*UploadUrlResponse, error) {
+func (receiver *UploadAliYunOssSvc) GetUrlForPreview(ctx context.Context, uploadPath string, expired time.Duration) (*UploadUrlResponse, error) {
 	//去掉最左边的/，因为前端传递的pathname是带有前缀的，比如/upload/xxx.png
 	//  而oss里是不需要的，所以我们去掉最左边的
 	uploadPath = strings.TrimLeft(uploadPath, "/")
 	var res UploadUrlResponse
-	result, err := receiver.OssClient.Presign(context.Background(), &oss.GetObjectRequest{
+	result, err := receiver.OssClient.Presign(ctx, &oss.GetObjectRequest{
 		Bucket: oss.Ptr(receiver.CommonConfig.Upload.AliYunOss.BucketName),
 		Key:    oss.Ptr(uploadPath),
 	}, oss.PresignExpires(expired))
@@ -171,12 +171,12 @@ func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSeco
 }
 
 // 这里的key不包含前面的url前缀，单纯的path，比如store/1/xxx.png
-func (receiver *UploadAliYunOssSvc) IsUrlExist(urlPath []string) (bool, error) {
+func (receiver *UploadAliYunOssSvc) IsUrlExist(ctx context.Context, urlPath []string) (bool, error) {
 	for _, url := range urlPath {
 		//转换到key
 		index := strings.Index(url, receiver.CommonConfig.Upload.AliYunOss.Endpoint)
 		key := url[index+len(receiver.CommonConfig.Upload.AliYunOss.Endpoint)+1:]
-		exist, err := receiver.OssClient.IsObjectExist(context.Background(), receiver.CommonConfig.Upload.AliYunOss.BucketName, key)
+		exist, err := receiver.OssClient.IsObjectExist(ctx, receiver.CommonConfig.Upload.AliYunOss.BucketName, key)
 		if err != nil {
 			return false, errors.Wrap(err, "查询文件失败")
 		}

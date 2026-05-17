@@ -46,7 +46,5 @@ func NewElasticClient(allConfig *CommonConfig, logger *zap.Logger) *elasticsearc
 		log.Fatal("连接es失败", zap.Error(err))
 		return nil
 	}
-
-	log.Println("连接es成功")
 	return client
 }

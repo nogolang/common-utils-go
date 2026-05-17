@@ -15,67 +15,67 @@ func ReadConfigInFile(configPath string) error {
 	for _, cfgPath := range multiConfig {
 		v := viper.New()
 
-		//读取多个主配置文件
+		//读取配置文件
 		v.SetConfigFile(cfgPath)
 		err := v.ReadInConfig()
 		if err != nil {
 			return errors.Wrap(err, "配置文件读取失败")
 		}
+		//合并到全局
+		err = viper.MergeConfigMap(v.AllSettings())
+		if err != nil {
+			return errors.Wrap(err, "配置文件合并到全局失败")
+		}
+
+		//监听
 		v.OnConfigChange(func(in fsnotify.Event) {
+			//更新之后，重新合并到全局
 			log.Println(in.Name, in.String(), "配置文件更新了")
+			err := viper.MergeConfigMap(v.AllSettings())
+			if err != nil {
+				log.Fatal("更新后 merge到主配置失败:", err)
+			}
 		})
 		v.WatchConfig()
 
-		//每个主配置文件里，可能又会有commonConfigPath
-		//  但是所有的配置文件，都要合并到主配置文件中
-		err = mergeAllConfig(v)
-		if err != nil {
-			return errors.Wrap(err, "配置文件合并失败")
-		}
-
-		//然后把合并后的实例，再合并到全局中
-		var temp map[string]any
-		err = v.Unmarshal(&temp)
-		if err != nil {
-			return errors.Wrap(err, "配置文件序列化失败")
-		}
-		err = viper.MergeConfigMap(temp)
-		if err != nil {
-			return errors.Wrap(err, "配置文件合并失败")
-		}
-
+		//配置文件里，可能会有commonConfigPath用于引入其他配置文件
+		//err = mergeCommonConfig(v)
+		//if err != nil {
+		//	return errors.Wrap(err, "配置文件合并失败")
+		//}
 	}
-
 	return nil
 }
 
-func mergeAllConfig(mainConfig *viper.Viper) error {
-	//读取common配置文件
+func mergeCommonConfig(mainConfig *viper.Viper) error {
 	allCommonConfigPath := mainConfig.GetStringSlice("commonConfigPath")
 	for _, cfgPath := range allCommonConfigPath {
 		v := viper.New()
+
+		//读取配置文件，这里的文件路径需要处理，因为我们的其他配置文件，应该是相当于主配置文件路径来说的
+		//如果我们主配置文件里写 "./common.yaml"，那么这个相对目录实际上是相当于工作目录来说的
+		//而不是主配置文件路径
 		v.SetConfigFile(cfgPath)
 		err := v.ReadInConfig()
 		if err != nil {
-			log.Fatal("配置文件读取失败:", err)
+			return errors.Wrap(err, "配置文件读取失败")
 		}
-		//监听配置文件,会自动重写读取进内存
-		//  每次修改单个文件，单个文件可能会触发2次OnConfigChange
-		//  注意，和循环无关，因为我们是独立的实例
+		//合并到全局
+		err = viper.MergeConfigMap(v.AllSettings())
+		if err != nil {
+			return errors.Wrap(err, "配置文件合并到全局失败")
+		}
+
+		//监听
 		v.OnConfigChange(func(in fsnotify.Event) {
+			//更新之后，重新合并到全局
 			log.Println(in.Name, in.String(), "配置文件更新了")
+			err := viper.MergeConfigMap(v.AllSettings())
+			if err != nil {
+				log.Fatal("更新后 merge到主配置失败:", err)
+			}
 		})
 		v.WatchConfig()
-
-		var temp map[string]any
-		err = v.Unmarshal(&temp)
-		if err != nil {
-			return errors.Wrap(err, "配置文件序列化失败")
-		}
-		err = mainConfig.MergeConfigMap(temp)
-		if err != nil {
-			return errors.Wrap(err, "配置文件合并失败")
-		}
 	}
 	return nil
 }
