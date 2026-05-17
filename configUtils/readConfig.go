@@ -62,7 +62,7 @@ func mergeCommonConfig(mainConfig *viper.Viper) error {
 		//如果我们主配置文件里写 "./common.yaml"，那么这个相对目录实际上是相当于工作目录来说的
 		//而不是主配置文件路径
 		v.SetConfigFile(cfgPath)
-		err := v.ReadInConfig()
+		err = v.ReadInConfig()
 		if err != nil {
 			return errors.Wrap(err, "配置文件读取失败")
 		}
