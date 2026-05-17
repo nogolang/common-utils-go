@@ -23,7 +23,7 @@ type CommonConfig struct {
 	CommonConfigPath []string `json:"commonConfigPath"`
 
 	//日志配置
-	Log *logConfig
+	Log *LogConfig
 
 	//数据库配置
 	Gorm *gormUtils.GormConfig
@@ -57,8 +57,10 @@ type serverConfig struct {
 	GrpcPort   int    `json:"grpcPort"`
 }
 
-type logConfig struct {
+type LogConfig struct {
 	Level string `json:"level"`
+	//隐藏的字段
+	HiddenField []string `json:"hiddenField"`
 }
 
 // 判断是否是开发环境

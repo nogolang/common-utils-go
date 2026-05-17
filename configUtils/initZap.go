@@ -3,9 +3,11 @@ package configUtils
 import (
 	"log"
 	"os"
+	"slices"
 	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/buffer"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -37,17 +39,18 @@ func NewZapConfig(allConfig *CommonConfig, level *zap.AtomicLevel) *zap.Logger {
 
 	if IsDev() {
 		//输出日志，向控制台输出，如果设置的是warn，那么info是不会输出的
-		devCore := zapcore.NewCore(getEncoding(), getConsoleWriter(), level)
+		devCore := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), level)
 		//这里不添加本身的日志堆栈和caller信息，而是输出错误堆栈信息，因为我们的日志是放到中间件的
 		//  所以caller是中间件，所以有和没有caller没有区别，看错误堆栈信息即可
 		logger = zap.New(devCore)
 	} else {
-		//生产环境，因为放到pod里，所以也要向控制台和文件都输出
-		//  文件则要分为error和info
-		//后续看看日志收集是什么形式，再做调整
-		prodCoreConsole := zapcore.NewCore(getEncoding(), getConsoleWriter(), level)
-		prodFileInfo := zapcore.NewCore(getEncoding(), getLogWriterAll(), level)
-		prodFileError := zapcore.NewCore(getEncoding(), getLogWriterError(), zapcore.ErrorLevel)
+		//生产环境,直接输出到文件
+		//文件则要分为error和info
+		//至于控制台,我们输出error即可,方便pod里查看
+		//  pod不能放info,不然会全是无意义的内容,会撑爆容器volume
+		prodCoreConsole := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), zapcore.ErrorLevel)
+		prodFileInfo := zapcore.NewCore(getEncoding(allConfig), getLogWriterAll(), level)
+		prodFileError := zapcore.NewCore(getEncoding(allConfig), getLogWriterError(), zapcore.ErrorLevel)
 		logger = zap.New(zapcore.NewTee(prodCoreConsole, prodFileInfo, prodFileError))
 	}
 	//这里使用了wire，严格准守di原则
@@ -56,7 +59,7 @@ func NewZapConfig(allConfig *CommonConfig, level *zap.AtomicLevel) *zap.Logger {
 	return logger
 }
 
-func getEncoding() zapcore.Encoder {
+func getEncoding(common *CommonConfig) zapcore.Encoder {
 	var newEncoder zapcore.Encoder
 	encodeTime := func(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 		encoder.AppendString(t.Format(time.DateTime))
@@ -65,10 +68,16 @@ func getEncoding() zapcore.Encoder {
 		config := zap.NewDevelopmentEncoderConfig()
 		config.EncodeTime = encodeTime
 		newEncoder = zapcore.NewConsoleEncoder(config)
+
+		//进行脱敏
+		newEncoder = &SanitizingEncoder{newEncoder, common.Log.HiddenField}
 	} else {
 		config := zap.NewProductionEncoderConfig()
 		config.EncodeTime = encodeTime
 		newEncoder = zapcore.NewJSONEncoder(config)
+
+		//进行脱敏
+		newEncoder = &SanitizingEncoder{newEncoder, common.Log.HiddenField}
 	}
 	return newEncoder
 }
@@ -77,6 +86,7 @@ func getConsoleWriter() zapcore.WriteSyncer {
 	//开发环境向控制台输出info和error
 	return zapcore.AddSync(os.Stdout)
 }
+
 func getLogWriterAll() zapcore.WriteSyncer {
 	return zapcore.AddSync(lumberJackAll())
 }
@@ -164,4 +174,29 @@ func lumberJackError() *lumberjack.Logger {
 		//是否压缩旧文件
 		Compress: false,
 	}
+}
+
+// 自定义脱敏编码器 - 更简单直观的方式
+type SanitizingEncoder struct {
+	zapcore.Encoder
+	SensitiveFields []string
+}
+
+func (receiver *SanitizingEncoder) Clone() zapcore.Encoder {
+	return &SanitizingEncoder{
+		Encoder: receiver.Encoder.Clone(),
+	}
+}
+
+func (receiver *SanitizingEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field) (*buffer.Buffer, error) {
+	// 在这里脱敏，然后调用原始编码器
+	sanitizedFields := make([]zapcore.Field, len(fields))
+	for i, field := range fields {
+		if slices.Contains(receiver.SensitiveFields, field.Key) {
+			sanitizedFields[i] = zap.String(field.Key, "***MASKED***")
+		} else {
+			sanitizedFields[i] = field
+		}
+	}
+	return receiver.Encoder.EncodeEntry(entry, sanitizedFields)
 }
