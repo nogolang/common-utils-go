@@ -42,7 +42,9 @@ func NewZapConfig(allConfig *CommonConfig, level *zap.AtomicLevel) *zap.Logger {
 		devCore := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), level)
 		//这里不添加本身的日志堆栈和caller信息，而是输出错误堆栈信息，因为我们的日志是放到中间件的
 		//  所以caller是中间件，所以有和没有caller没有区别，看错误堆栈信息即可
-		logger = zap.New(devCore)
+		logger = zap.New(devCore,
+			zap.AddCaller(),
+		)
 	} else {
 		//生产环境,直接输出到文件
 		//文件则要分为error和info
