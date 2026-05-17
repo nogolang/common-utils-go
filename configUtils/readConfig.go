@@ -1,6 +1,7 @@
 package configUtils
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -55,8 +56,7 @@ func mergeCommonConfig(mainConfig *viper.Viper) error {
 
 		_, err := os.Stat(cfgPath)
 		if os.IsNotExist(err) {
-			log.Println("commonConfigPath:", cfgPath, "不存在")
-			continue
+			return errors.Wrap(err, fmt.Sprintf("配置文件不存在: %s", cfgPath))
 		}
 		//读取配置文件，这里的文件路径需要处理，因为我们的其他配置文件，应该是相当于主配置文件路径来说的
 		//如果我们主配置文件里写 "./common.yaml"，那么这个相对目录实际上是相当于工作目录来说的
