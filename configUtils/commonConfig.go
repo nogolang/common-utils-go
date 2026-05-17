@@ -23,7 +23,7 @@ type CommonConfig struct {
 	CommonConfigPath []string `json:"commonConfigPath"`
 
 	//日志配置
-	Log *LogConfig
+	Log *LogConfig `json:"log"`
 
 	//数据库配置
 	Gorm *gormUtils.GormConfig
