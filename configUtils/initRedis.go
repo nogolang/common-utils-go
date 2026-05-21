@@ -4,6 +4,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"go.uber.org/zap"
 )
 import "github.com/redis/go-redis/v9"
@@ -92,4 +94,20 @@ func NewRedisClient(allConfig *CommonConfig, logger *zap.Logger) *redis.Client {
 	}
 
 	return nil
+}
+
+// 创建分布式锁
+func NewRedisSyncSingle(redisDb *redis.Client) *redsync.Redsync {
+	// 创建redisSync的redis连接池对象
+	var pool = goredis.NewPool(redisDb)
+	// 从连接池里获取锁对象
+	var rsync = redsync.New(pool)
+	return rsync
+}
+func NewRedisSyncCluster(redisDb *redis.ClusterClient) *redsync.Redsync {
+	// 创建redisSync的redis连接池对象
+	var pool = goredis.NewPool(redisDb)
+	// 从连接池里获取锁对象
+	var rsync = redsync.New(pool)
+	return rsync
 }

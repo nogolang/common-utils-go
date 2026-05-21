@@ -20,6 +20,7 @@ require (
 	github.com/go-kratos/kratos/contrib/registry/kubernetes/v2 v2.0.0-20260309034246-689d861de3f2
 	github.com/go-kratos/kratos/v2 v2.9.2
 	github.com/go-playground/validator/v10 v10.30.0
+	github.com/go-redsync/redsync/v4 v4.16.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
@@ -27,7 +28,7 @@ require (
 	github.com/jinzhu/copier v0.4.0
 	github.com/nogolang/gorm-zap v1.0.4
 	github.com/pkg/errors v0.9.1
-	github.com/redis/go-redis/v9 v9.17.2
+	github.com/redis/go-redis/v9 v9.17.3
 	github.com/samber/lo v1.52.0
 	github.com/spf13/viper v1.21.0
 	go.etcd.io/etcd/client/v3 v3.6.7
