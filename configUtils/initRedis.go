@@ -65,7 +65,7 @@ func NewRedisClient(allConfig *CommonConfig, logger *zap.Logger) *redis.Client {
 		redisDB = redis.NewClient(&redis.Options{
 			Addr:     allConfig.Redis.SingleUrl,
 			Password: "",
-			DB:       0,
+			DB:       allConfig.Redis.Db,
 			//最大连接数量,默认是10，没有初始连接数，
 			//看样子它的初始连接数也是动态调整的
 			PoolSize: 100,
