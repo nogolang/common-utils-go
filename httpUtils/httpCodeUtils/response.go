@@ -43,6 +43,7 @@ func (receiver *Response) WithData(data interface{}) *Response {
 
 func (receiver *Response) WithMessage(newMessage string) *Response {
 	response := NewResponse(receiver.Status, receiver.Code, newMessage)
+	response.Message = receiver.Message + newMessage
 	return response
 }
 func (receiver *Response) WithMetadata(metadata map[string]string) *Response {
