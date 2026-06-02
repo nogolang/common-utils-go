@@ -20,6 +20,9 @@ type CommonConfig struct {
 	//数据库配置
 	Gorm *GormConfig
 
+	//锁的类型
+	Lock *LockConfig `json:"lock"`
+
 	//redis配置
 	Redis *RedisConfig
 
