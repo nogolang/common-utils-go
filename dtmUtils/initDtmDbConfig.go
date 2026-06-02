@@ -1,4 +1,4 @@
-package configUtils
+package dtmUtils
 
 import (
 	"strconv"
@@ -6,10 +6,11 @@ import (
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	rawMysql "github.com/go-sql-driver/mysql"
+	"github.com/nogolang/common-utils-go/configUtils"
 	"go.uber.org/zap"
 )
 
-func NewDtmDbConfig(allConfig *CommonConfig) *dtmcli.DBConf {
+func NewDtmDbConfig(allConfig *configUtils.CommonConfig) *dtmcli.DBConf {
 	cfg, err := rawMysql.ParseDSN(allConfig.Gorm.Url)
 	if err != nil {
 		zap.L().Error("解析数据库连接字符串出错")

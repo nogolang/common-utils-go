@@ -4,15 +4,7 @@ import (
 	"os"
 
 	"github.com/nogolang/common-utils-go/cloudUtils"
-	"github.com/nogolang/common-utils-go/consulUtils"
-	"github.com/nogolang/common-utils-go/dtmUtils"
-	"github.com/nogolang/common-utils-go/elasticUtils"
-	"github.com/nogolang/common-utils-go/etcdUtils"
-	"github.com/nogolang/common-utils-go/gormUtils"
-	"github.com/nogolang/common-utils-go/redisUtils"
-	"github.com/nogolang/common-utils-go/tokenUtils"
 	"github.com/nogolang/common-utils-go/uploadUtils"
-	"github.com/nogolang/common-utils-go/watermillUtils"
 )
 
 type CommonConfig struct {
@@ -26,25 +18,25 @@ type CommonConfig struct {
 	Log *LogConfig `json:"log"`
 
 	//数据库配置
-	Gorm *gormUtils.GormConfig
+	Gorm *GormConfig
 
 	//redis配置
-	Redis *redisUtils.RedisConfig
+	Redis *RedisConfig
 
 	//etcd配置
-	Etcd *etcdUtils.EtcdConfig
+	Etcd *EtcdConfig
 
 	//consul配置
-	Consul *consulUtils.ConsulConfig
+	Consul *ConsulConfig
 
-	Jwt *tokenUtils.JwtConfig
+	Jwt *JwtConfig
 
-	Elastic *elasticUtils.ElasticConfig
+	Elastic *ElasticConfig
 
-	RabbitMq *watermillUtils.RabbitMqConfig
+	RabbitMq *RabbitMqConfig
 
 	//dtm的配置，主要是配置日志之类的
-	Dtm *dtmUtils.DtmConfig
+	Dtm *DtmConfig
 
 	//阿里云账户
 	AliYunAccount *cloudUtils.AliYunAccount `json:"aliYunAccount"`

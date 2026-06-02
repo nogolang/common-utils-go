@@ -1,4 +1,4 @@
-package configUtils
+package etcdUtils
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	"github.com/go-kratos/kratos/v2/selector"
 	"github.com/go-kratos/kratos/v2/selector/random"
 	"github.com/go-kratos/kratos/v2/transport/grpc/resolver/discovery"
+	"github.com/nogolang/common-utils-go/configUtils"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/resolver"
@@ -44,7 +45,7 @@ func NewKratosEtcdClient(etcdClient *clientv3.Client, logger *zap.Logger) *etcd.
 	return r
 }
 
-func NewEtcdClient(allConfig *CommonConfig, logger *zap.Logger) *clientv3.Client {
+func NewEtcdClient(allConfig *configUtils.CommonConfig, logger *zap.Logger) *clientv3.Client {
 	var crt tls.Config
 	var etcdConfig clientv3.Config
 	if allConfig.Etcd.EnableTls {

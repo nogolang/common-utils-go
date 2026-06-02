@@ -1,4 +1,4 @@
-package configUtils
+package watermillUtils
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
 	"github.com/garsue/watermillzap"
+	"github.com/nogolang/common-utils-go/configUtils"
 
 	"go.uber.org/zap"
 )
@@ -19,7 +20,7 @@ func NewZapWaterLogger(logger *zap.Logger) watermill.LoggerAdapter {
 }
 
 // 这个router，是消费者需要使用的，生产者无需使用router
-func NewWaterRouter(allConfig *CommonConfig,
+func NewWaterRouter(allConfig *configUtils.CommonConfig,
 	waterLogger watermill.LoggerAdapter) *message.Router {
 	router, err := message.NewRouter(message.RouterConfig{}, nil)
 	if err != nil {

@@ -1,4 +1,4 @@
-package redisUtils
+package configUtils
 
 type RedisConfig struct {
 	IsSingle   bool     `json:"isSingle"`

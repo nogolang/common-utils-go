@@ -1,4 +1,4 @@
-package elasticUtils
+package configUtils
 
 type ElasticConfig struct {
 	CaCrt     string   `json:"caCrt"`

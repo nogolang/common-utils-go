@@ -1,4 +1,4 @@
-package gormUtils
+package configUtils
 
 type GormConfig struct {
 	DatabaseType                string `json:"databaseType"`

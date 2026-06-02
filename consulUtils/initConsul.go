@@ -1,4 +1,4 @@
-package configUtils
+package consulUtils
 
 import (
 	"fmt"
@@ -6,11 +6,12 @@ import (
 	consulRegister "github.com/go-kratos/kratos/contrib/registry/consul/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	consulApi "github.com/hashicorp/consul/api"
+	"github.com/nogolang/common-utils-go/configUtils"
 
 	"go.uber.org/zap"
 )
 
-func NewKratosConsulClient(allConfig *CommonConfig) *consulRegister.Registry {
+func NewKratosConsulClient(allConfig *configUtils.CommonConfig) *consulRegister.Registry {
 	client, err := consulApi.NewClient(&consulApi.Config{
 		Address: allConfig.Consul.Url,
 	})

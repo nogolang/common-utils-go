@@ -1,14 +1,15 @@
-package configUtils
+package zapUtils
 
 import (
 	"testing"
 
+	"github.com/nogolang/common-utils-go/configUtils"
 	"go.uber.org/zap"
 )
 
 func Test_zap(t *testing.T) {
-	common := CommonConfig{
-		Log: &LogConfig{
+	common := configUtils.CommonConfig{
+		Log: &configUtils.LogConfig{
 			Level:       "info",
 			HiddenField: []string{"password"},
 		},

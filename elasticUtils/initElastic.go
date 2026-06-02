@@ -1,4 +1,4 @@
-package configUtils
+package elasticUtils
 
 import (
 	"log"
@@ -6,10 +6,11 @@ import (
 
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/nogolang/common-utils-go/configUtils"
 	"go.uber.org/zap"
 )
 
-func NewElasticClient(allConfig *CommonConfig, logger *zap.Logger) *elasticsearch.TypedClient {
+func NewElasticClient(allConfig *configUtils.CommonConfig, logger *zap.Logger) *elasticsearch.TypedClient {
 	if allConfig.Elastic == nil {
 		return nil
 	}

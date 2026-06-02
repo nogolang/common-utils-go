@@ -1,4 +1,4 @@
-package etcdUtils
+package configUtils
 
 type EtcdConfig struct {
 	EnableTls bool     `json:"enableTls"`

@@ -1,9 +1,10 @@
-package configUtils
+package kratosUtils
 
 import (
 	"path/filepath"
 
 	kuberegistry "github.com/go-kratos/kratos/contrib/registry/kubernetes/v2"
+	"github.com/nogolang/common-utils-go/configUtils"
 	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -11,9 +12,9 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-func NewKratosRegisterK8s(logger *zap.Logger, allConfig *CommonConfig) *kuberegistry.Registry {
+func NewKratosRegisterK8s(logger *zap.Logger, allConfig *configUtils.CommonConfig) *kuberegistry.Registry {
 	//如果是dev，返回一个空的即可，反正我们也不会去用
-	if IsDev() {
+	if configUtils.IsDev() {
 		return &kuberegistry.Registry{}
 	}
 

@@ -1,8 +1,9 @@
-package configUtils
+package gormUtils
 
 import (
 	"time"
 
+	"github.com/nogolang/common-utils-go/configUtils"
 	"github.com/nogolang/gorm-zap/gormZap"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
@@ -13,7 +14,7 @@ import (
 )
 
 // 初始化gorm的配置
-func getGormConfigCommon(logger *zap.Logger, allConfig *CommonConfig) *gorm.Config {
+func getGormConfigCommon(logger *zap.Logger, allConfig *configUtils.CommonConfig) *gorm.Config {
 	var gormLogLevel gormlogger.LogLevel
 	switch allConfig.Gorm.LogLevel {
 	case "info":
@@ -39,7 +40,7 @@ func getGormConfigCommon(logger *zap.Logger, allConfig *CommonConfig) *gorm.Conf
 	return config
 }
 
-func SetGormThread(db *gorm.DB, allConfig *CommonConfig) error {
+func SetGormThread(db *gorm.DB, allConfig *configUtils.CommonConfig) error {
 	raw, err := db.DB()
 	if err != nil {
 		return err
@@ -51,7 +52,7 @@ func SetGormThread(db *gorm.DB, allConfig *CommonConfig) error {
 }
 
 // NewGormConfig logger由外部注入进来
-func NewGorm(logger *zap.Logger, allConfig *CommonConfig) *gorm.DB {
+func NewGorm(logger *zap.Logger, allConfig *configUtils.CommonConfig) *gorm.DB {
 	config := getGormConfigCommon(logger, allConfig)
 	//finalDns := ""
 	//如果不显示的配置不使用url，那默认就是使用url

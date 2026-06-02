@@ -1,4 +1,4 @@
-package configUtils
+package redisUtils
 
 import (
 	"log"
@@ -6,12 +6,13 @@ import (
 
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
+	"github.com/nogolang/common-utils-go/configUtils"
 	"go.uber.org/zap"
 )
 import "github.com/redis/go-redis/v9"
 
 // 集群连接
-func NewRedisClusterClient(allConfig *CommonConfig) *redis.ClusterClient {
+func NewRedisClusterClient(allConfig *configUtils.CommonConfig) *redis.ClusterClient {
 	var redisDB *redis.ClusterClient
 
 	//如果集群
@@ -51,7 +52,7 @@ func NewRedisClusterClient(allConfig *CommonConfig) *redis.ClusterClient {
 }
 
 // 单机连接
-func NewRedisClient(allConfig *CommonConfig, logger *zap.Logger) *redis.Client {
+func NewRedisClient(allConfig *configUtils.CommonConfig, logger *zap.Logger) *redis.Client {
 	var redisDB *redis.Client
 
 	//如果单机

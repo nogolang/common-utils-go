@@ -1,4 +1,4 @@
-package tokenUtils
+package configUtils
 
 type JwtConfig struct {
 	Secret  string   `json:"secret"`

@@ -1,4 +1,4 @@
-package configUtils
+package zapUtils
 
 import (
 	"log"
@@ -6,13 +6,14 @@ import (
 	"slices"
 	"time"
 
+	"github.com/nogolang/common-utils-go/configUtils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/buffer"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-func NewZapAtomicLevel(allConfig *CommonConfig) *zap.AtomicLevel {
+func NewZapAtomicLevel(allConfig *configUtils.CommonConfig) *zap.AtomicLevel {
 	level := zap.NewAtomicLevel()
 	if allConfig.Log == nil {
 		level.SetLevel(zapcore.InfoLevel)
@@ -34,10 +35,10 @@ func NewZapAtomicLevel(allConfig *CommonConfig) *zap.AtomicLevel {
 	return &level
 }
 
-func NewZapConfig(allConfig *CommonConfig, level *zap.AtomicLevel) *zap.Logger {
+func NewZapConfig(allConfig *configUtils.CommonConfig, level *zap.AtomicLevel) *zap.Logger {
 	var logger *zap.Logger
 
-	if IsDev() {
+	if configUtils.IsDev() {
 		//输出日志，向控制台输出，如果设置的是warn，那么info是不会输出的
 		devCore := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), level)
 		//这里不添加本身的日志堆栈和caller信息，而是输出错误堆栈信息，因为我们的日志是放到中间件的
@@ -61,12 +62,12 @@ func NewZapConfig(allConfig *CommonConfig, level *zap.AtomicLevel) *zap.Logger {
 	return logger
 }
 
-func getEncoding(common *CommonConfig) zapcore.Encoder {
+func getEncoding(common *configUtils.CommonConfig) zapcore.Encoder {
 	var newEncoder zapcore.Encoder
 	encodeTime := func(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 		encoder.AppendString(t.Format(time.DateTime))
 	}
-	if IsDev() {
+	if configUtils.IsDev() {
 		config := zap.NewDevelopmentEncoderConfig()
 		config.EncodeTime = encodeTime
 		newEncoder = zapcore.NewConsoleEncoder(config)

@@ -1,20 +1,21 @@
-package configUtils
+package snowUtils
 
 import (
 	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/snowflake"
+	"github.com/nogolang/common-utils-go/configUtils"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
 // 测试的时候，因为是在idea里测试，idea可能读取不到，需要重新打开所有的idea才行
 // 我们可以直接在idea里设置环境变量去测试
-func NewSnowIdFromK8sEnv(allConfig *CommonConfig, logger *zap.Logger) *snowflake.Node {
+func NewSnowIdFromK8sEnv(allConfig *configUtils.CommonConfig, logger *zap.Logger) *snowflake.Node {
 	//开发环境就是为1
 	var num int
-	if IsDev() {
+	if configUtils.IsDev() {
 		num = 1
 	} else {
 		err := viper.BindEnv("POD_NAME")
