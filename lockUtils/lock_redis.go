@@ -1,4 +1,4 @@
-package bizLock
+package lockUtils
 
 import (
 	"context"
