@@ -14,8 +14,11 @@ type Locker interface {
 
 // 根据配置创建不同的的锁
 func NewLocker(allConfig *configUtils.CommonConfig, redSync *redsync.Redsync) Locker {
-	if allConfig.Lock.Use == configUtils.LockUse_Redis {
+	if allConfig.Lock.Use == configUtils.LockUse_Local {
 		return NewLocalLock()
+	} else if allConfig.Lock.Use == configUtils.LockUse_Redis {
+		return NewRedisBizLock(redSync)
 	}
-	return NewRedisBizLock(redSync)
+	panic("必须配置锁的类型")
+	return nil
 }
