@@ -5,22 +5,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nogolang/common-utils-go/httpUtils/httpCodeUtils"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 // MyGinZap 自定义中间件
-func MyGinZap(logger *zap.Logger) gin.HandlerFunc {
+func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//取消当前的caller，因为这是放到中间件调用的，没必要用caller
 		//即使显示caller，而是显示的中间件调用，没有意义
-		newLogger := logger.WithOptions(zap.WithCaller(false))
 
 		start := time.Now()
 		path := c.Request.URL.Path
@@ -72,16 +70,18 @@ func MyGinZap(logger *zap.Logger) gin.HandlerFunc {
 				var myResponse *httpCodeUtils.Response
 				if errors.As(err, &myResponse) {
 					//自定义错误都是返回前台的
-					fields := []zapcore.Field{
-						zap.Int("status", myResponse.Status),
-						zap.Any("args", bodyArgsStr),
-						zap.String("ip", c.ClientIP()),
-						//zap.String("user-agent", c.Request.UserAgent()),
-						zap.Duration("latency", latency),
+					fields := []slog.Attr{
+						slog.Int("status", myResponse.Status),
+						slog.Any("args", bodyArgsStr),
+						slog.String("ip", c.ClientIP()),
+						//slog.String("user-agent", c.Request.UserAgent()),
+						slog.Duration("latency", latency),
 					}
-					fields = append(fields, zap.String("code", myResponse.Code))
-					fields = append(fields, zap.String("message", myResponse.Message))
-					newLogger.Info(allRequestStr, fields...)
+					fields = append(fields, slog.String("code", myResponse.Code))
+					fields = append(fields, slog.String("message", myResponse.Message))
+
+					logger.Info(allRequestStr, fields)
+
 					//自定义错误都是返回前台的
 					c.JSON(myResponse.Status, gin.H{
 						"status":  myResponse.Status,
@@ -92,14 +92,13 @@ func MyGinZap(logger *zap.Logger) gin.HandlerFunc {
 				} else {
 					//如果不是我们返回的错误，比如gorm的语句错误，或者其他的中间件的错误
 					//  那就返回500，这里的错误信息最好别返回，而是打印日志即可，前台就显示简单的信息
-					fields := []zapcore.Field{
-						zap.Int("status", http.StatusInternalServerError),
-						zap.Any("args", bodyArgsStr),
-						zap.String("ip", c.ClientIP()),
-						zap.Duration("latency", latency),
+					fields := []slog.Attr{
+						slog.Int("status", http.StatusInternalServerError),
+						slog.Any("args", bodyArgsStr),
+						slog.String("ip", c.ClientIP()),
+						slog.Duration("latency", latency),
 					}
-					newLogger.Error(allRequestStr, fields...)
-					newLogger.Sugar().Error(fmt.Sprintf("%+v", err))
+					logger.Error(allRequestStr, fields, fmt.Sprintf("%+v", err))
 					c.JSON(http.StatusInternalServerError, gin.H{
 						"status":  http.StatusInternalServerError,
 						"code":    "UnexpectedError",
@@ -111,16 +110,16 @@ func MyGinZap(logger *zap.Logger) gin.HandlerFunc {
 		}
 
 		//如果调用过程中没有产生error，则打印info，然后返回即可
-		newLogger.Info(allRequestStr, []zapcore.Field{
+		logger.Info(allRequestStr, []slog.Attr{
 			//如果是404之类的，那么是直接response里是没有的
 			//  但是gin会写入status
 			//如果我们control返回200，那么这里也会写入200
 			//如果是bind(不是should)，那么gin也会写入状态
-			zap.Int("status", c.Writer.Status()),
-			zap.Any("args", bodyArgsStr),
-			zap.String("ip", c.ClientIP()),
-			zap.Duration("latency", latency),
-		}...)
+			slog.Int("status", c.Writer.Status()),
+			slog.Any("args", bodyArgsStr),
+			slog.String("ip", c.ClientIP()),
+			slog.Duration("latency", latency),
+		})
 		return
 	}
 }
