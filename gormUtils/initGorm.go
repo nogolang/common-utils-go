@@ -33,7 +33,12 @@ func getGormConfigCommon(logger *slog.Logger, allConfig *configUtils.CommonConfi
 
 		//适配slog
 		Logger: slogGorm.New(slogGorm.WithHandler(logger.Handler()),
-			slogGorm.WithSlowThreshold(time.Duration(allConfig.Gorm.SlowSqlMillSecond)*time.Second)),
+			slogGorm.WithTraceAll(), // trace all messages，此时才会打印默认的
+			slogGorm.WithSlowThreshold(time.Duration(allConfig.Gorm.SlowSqlMillSecond)*time.Second),
+			slogGorm.SetLogLevel(slogGorm.DefaultLogType, slog.LevelInfo),
+			slogGorm.SetLogLevel(slogGorm.ErrorLogType, slog.LevelError),
+			slogGorm.SetLogLevel(slogGorm.SlowQueryLogType, slog.LevelWarn),
+		),
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: allConfig.Gorm.SingularTable,
 		},
