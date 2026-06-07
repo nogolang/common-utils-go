@@ -3,6 +3,7 @@ package gormUtils
 import (
 	log "log"
 	"log/slog"
+	"time"
 
 	"github.com/nogolang/common-utils-go/configUtils"
 	slogGorm "github.com/orandin/slog-gorm"
@@ -31,7 +32,8 @@ func getGormConfigCommon(logger *slog.Logger, allConfig *configUtils.CommonConfi
 		//Logger: gormZap.NewGormZap(logger, gormLogLevel, time.Duration(allConfig.Gorm.SlowSqlMillSecond)*time.Millisecond), //gorm适配zap
 
 		//适配slog
-		Logger: slogGorm.New(slogGorm.WithHandler(logger.Handler())),
+		Logger: slogGorm.New(slogGorm.WithHandler(logger.Handler()),
+			slogGorm.WithSlowThreshold(time.Duration(allConfig.Gorm.SlowSqlMillSecond)*time.Second)),
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: allConfig.Gorm.SingularTable,
 		},
