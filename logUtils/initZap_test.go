@@ -1,4 +1,4 @@
-package zapUtils
+package logUtils
 
 import (
 	"testing"

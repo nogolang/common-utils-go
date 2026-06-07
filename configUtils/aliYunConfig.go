@@ -1,4 +1,4 @@
-package cloudUtils
+package configUtils
 
 type AliYunAccount struct {
 	AccessKeyId     string `json:"accessKeyId"`

@@ -1,4 +1,4 @@
-package zapUtils
+package logUtils
 
 import (
 	"log"
@@ -35,7 +35,7 @@ func NewZapAtomicLevel(allConfig *configUtils.CommonConfig) *zap.AtomicLevel {
 	return &level
 }
 
-func NewZapConfig(allConfig *configUtils.CommonConfig, level *zap.AtomicLevel) *zap.Logger {
+func NewZapConfig(allConfig *configUtils.CommonConfig, level zapcore.Level) *zap.Logger {
 	var logger *zap.Logger
 
 	if configUtils.IsDev() {

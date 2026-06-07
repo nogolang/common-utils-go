@@ -3,7 +3,6 @@ package configUtils
 import (
 	"os"
 
-	"github.com/nogolang/common-utils-go/cloudUtils"
 	"github.com/nogolang/common-utils-go/uploadUtils"
 )
 
@@ -42,7 +41,7 @@ type CommonConfig struct {
 	Dtm *DtmConfig
 
 	//阿里云账户
-	AliYunAccount *cloudUtils.AliYunAccount `json:"aliYunAccount"`
+	AliYunAccount *AliYunAccount            `json:"aliYunAccount"`
 	Upload        *uploadUtils.UploadConfig `json:"upload"`
 }
 
@@ -54,6 +53,8 @@ type serverConfig struct {
 
 type LogConfig struct {
 	Level string `json:"level"`
+	//默认使用zap
+	Use string `json:"use"`
 	//隐藏的字段
 	HiddenField []string `json:"hiddenField"`
 }
