@@ -7,7 +7,6 @@ import (
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/nogolang/common-utils-go/configUtils"
-	"go.uber.org/zap"
 )
 import "github.com/redis/go-redis/v9"
 
@@ -52,15 +51,15 @@ func NewRedisClusterClient(allConfig *configUtils.CommonConfig) *redis.ClusterCl
 }
 
 // 单机连接
-func NewRedisClient(allConfig *configUtils.CommonConfig, logger *zap.Logger) *redis.Client {
+func NewRedisClient(allConfig *configUtils.CommonConfig) *redis.Client {
 	var redisDB *redis.Client
 
 	//如果单机
 	if allConfig.Redis.IsSingle {
-		logger.Info("当前启动的是redis单机模式")
+		log.Println("当前启动的是redis单机模式")
 
 		if allConfig.Redis.SingleUrl == "" {
-			logger.Fatal("未配置redis单机链接")
+			log.Fatal("未配置redis单机链接")
 			return nil
 		}
 
@@ -88,7 +87,7 @@ func NewRedisClient(allConfig *configUtils.CommonConfig, logger *zap.Logger) *re
 		})
 		//@TODO 需要添加一些判断，不然报空制作，直接退出
 		if redisDB == nil {
-			logger.Fatal("redis初始化错误")
+			log.Fatal("redis初始化错误")
 			return nil
 		}
 		return redisDB
