@@ -1,6 +1,9 @@
 package gormUtils
 
 import (
+	log "log"
+	"log/slog"
+
 	"github.com/nogolang/common-utils-go/configUtils"
 	slogGorm "github.com/orandin/slog-gorm"
 	"go.uber.org/zap"
@@ -8,12 +11,10 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
-	log "log"
-	"log/slog"
 )
 
 // 初始化gorm的配置
-func getGormConfigCommon(logger slog.Logger, allConfig *configUtils.CommonConfig) *gorm.Config {
+func getGormConfigCommon(logger *slog.Logger, allConfig *configUtils.CommonConfig) *gorm.Config {
 	//var gormLogLevel gormlogger.LogLevel
 	//switch allConfig.Gorm.LogLevel {
 	//case "info":
@@ -54,7 +55,7 @@ func SetGormThread(db *gorm.DB, allConfig *configUtils.CommonConfig) error {
 }
 
 // NewGormConfig logger由外部注入进来
-func NewGorm(logger slog.Logger, allConfig *configUtils.CommonConfig) *gorm.DB {
+func NewGorm(logger *slog.Logger, allConfig *configUtils.CommonConfig) *gorm.DB {
 	config := getGormConfigCommon(logger, allConfig)
 	var db *gorm.DB
 	finalDns := allConfig.Gorm.Url
