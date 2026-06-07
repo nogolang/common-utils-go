@@ -1,6 +1,7 @@
 package kratosUtils
 
 import (
+	"log"
 	"path/filepath"
 
 	kuberegistry "github.com/go-kratos/kratos/contrib/registry/kubernetes/v2"
@@ -12,7 +13,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-func NewKratosRegisterK8s(logger *zap.Logger, allConfig *configUtils.CommonConfig) *kuberegistry.Registry {
+func NewKratosRegisterK8s() *kuberegistry.Registry {
 	//如果是dev，返回一个空的即可，反正我们也不会去用
 	if configUtils.IsDev() {
 		return &kuberegistry.Registry{}
@@ -24,7 +25,7 @@ func NewKratosRegisterK8s(logger *zap.Logger, allConfig *configUtils.CommonConfi
 
 	set, err := getClientSet()
 	if err != nil {
-		logger.Fatal("NewKratosRegisterK8s", zap.Error(err))
+		log.Fatal("NewKratosRegisterK8s", zap.Error(err))
 		return nil
 	}
 	reg := kuberegistry.NewRegistry(set, kuberegistry.GetNamespace())

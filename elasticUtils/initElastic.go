@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewElasticClient(allConfig *configUtils.CommonConfig, logger *zap.Logger) *elasticsearch.TypedClient {
+func NewElasticClient(allConfig *configUtils.CommonConfig) *elasticsearch.TypedClient {
 	if allConfig.Elastic == nil {
 		return nil
 	}
@@ -18,7 +18,7 @@ func NewElasticClient(allConfig *configUtils.CommonConfig, logger *zap.Logger) *
 	if allConfig.Elastic.EnableTls {
 		caFile, err := os.ReadFile(allConfig.Elastic.CaCrt)
 		if err != nil {
-			logger.Sugar().Fatal("读取elastic ca文件失败")
+			log.Fatal("读取elastic ca文件失败")
 			return nil
 		}
 		esConfig = elasticsearch.Config{

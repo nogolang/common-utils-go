@@ -2,6 +2,8 @@ package watermillUtils
 
 import (
 	"context"
+	"log"
+	"log/slog"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -16,14 +18,14 @@ import (
 type RequeuePoisonUtils struct {
 	WaterLog watermill.LoggerAdapter
 	AmqpUrl  string
-	Logger   *zap.Logger
+	Logger   slog.Logger
 }
 
-func NewRequeuePoisonUtils(WaterLog watermill.LoggerAdapter, Logger *zap.Logger, rabbitMQUrl string) *RequeuePoisonUtils {
+func NewRequeuePoisonUtils(WaterLog watermill.LoggerAdapter, log slog.Logger, rabbitMQUrl string) *RequeuePoisonUtils {
 	return &RequeuePoisonUtils{
 		WaterLog: WaterLog,
 		AmqpUrl:  rabbitMQUrl,
-		Logger:   Logger,
+		Logger:   log,
 	}
 }
 
@@ -77,7 +79,7 @@ func (receiver *RequeuePoisonUtils) CreateRequeue(poisonSubscriber *amqp.Subscri
 	go func() {
 		err := newRequeue.Run(context.Background())
 		if err != nil {
-			receiver.Logger.Fatal("启动water requeue失败", zap.Error(err))
+			log.Fatal("启动water requeue失败", zap.Error(err))
 			return
 		}
 	}()
