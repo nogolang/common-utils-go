@@ -2,6 +2,7 @@ package ginMiddleware
 
 import (
 	"context"
+	"log"
 
 	"time"
 
@@ -13,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewDiscoveryHttpClient(logger *zap.Logger,
+func NewDiscoveryHttpClient(
 	KratosEtcdClient *kratosEtcd.Registry,
 	serviceName string) *kratosHttp.Client {
 	//创建全局的负载均衡算法为random
@@ -40,7 +41,7 @@ func NewDiscoveryHttpClient(logger *zap.Logger,
 		kratosHttp.WithTimeout(time.Second*60),
 	)
 	if err != nil {
-		logger.Fatal("服务发现初始化错误", zap.Error(err))
+		log.Fatal("服务发现初始化错误", zap.Error(err))
 		return nil
 	}
 	return httpClient
