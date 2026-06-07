@@ -26,7 +26,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/consul/api v1.33.0
 	github.com/jinzhu/copier v0.4.0
-	github.com/nogolang/gorm-zap v1.0.4
+	github.com/orandin/slog-gorm v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.17.3
 	github.com/samber/lo v1.52.0

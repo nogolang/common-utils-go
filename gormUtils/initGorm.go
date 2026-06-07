@@ -1,34 +1,36 @@
 package gormUtils
 
 import (
-	"time"
-
 	"github.com/nogolang/common-utils-go/configUtils"
-	"github.com/nogolang/gorm-zap/gormZap"
+	slogGorm "github.com/orandin/slog-gorm"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	gormlogger "gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
+	log "log"
+	"log/slog"
 )
 
 // 初始化gorm的配置
-func getGormConfigCommon(logger *zap.Logger, allConfig *configUtils.CommonConfig) *gorm.Config {
-	var gormLogLevel gormlogger.LogLevel
-	switch allConfig.Gorm.LogLevel {
-	case "info":
-		gormLogLevel = gormlogger.Info
-	case "warn":
-		gormLogLevel = gormlogger.Warn
-	case "error":
-		gormLogLevel = gormlogger.Error
-	default:
-		gormLogLevel = gormlogger.Info
-	}
+func getGormConfigCommon(logger slog.Logger, allConfig *configUtils.CommonConfig) *gorm.Config {
+	//var gormLogLevel gormlogger.LogLevel
+	//switch allConfig.Gorm.LogLevel {
+	//case "info":
+	//	gormLogLevel = gormlogger.Info
+	//case "warn":
+	//	gormLogLevel = gormlogger.Warn
+	//case "error":
+	//	gormLogLevel = gormlogger.Error
+	//default:
+	//	gormLogLevel = gormlogger.Info
+	//}
 	var config = &gorm.Config{
-		Logger: gormZap.NewGormZap(logger, gormLogLevel,
-			time.Duration(allConfig.Gorm.SlowSqlMillSecond)*time.Millisecond), //gorm适配zap
+		//适配zap
+		//Logger: gormZap.NewGormZap(logger, gormLogLevel, time.Duration(allConfig.Gorm.SlowSqlMillSecond)*time.Millisecond), //gorm适配zap
+
+		//适配slog
+		Logger: slogGorm.New(slogGorm.WithHandler(logger.Handler())),
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: allConfig.Gorm.SingularTable,
 		},
@@ -52,33 +54,8 @@ func SetGormThread(db *gorm.DB, allConfig *configUtils.CommonConfig) error {
 }
 
 // NewGormConfig logger由外部注入进来
-func NewGorm(logger *zap.Logger, allConfig *configUtils.CommonConfig) *gorm.DB {
+func NewGorm(logger slog.Logger, allConfig *configUtils.CommonConfig) *gorm.DB {
 	config := getGormConfigCommon(logger, allConfig)
-	//finalDns := ""
-	//如果不显示的配置不使用url，那默认就是使用url
-	//这里后续放弃了，统一使用url形式
-	//if allConfig.Gorm.NoUrl {
-	//	cfg := mysqlUtil.NewConfig()
-	//	cfg.DBName = allConfig.Gorm.Database
-	//	cfg.User = allConfig.Gorm.Username
-	//	cfg.Passwd = allConfig.Gorm.Password
-	//	cfg.Addr = allConfig.Gorm.Host
-	//	urlValues, err := url.ParseQuery(allConfig.Gorm.Param)
-	//	if err != nil {
-	//		logger.Fatal("url解码失败", zap.Error(err))
-	//		return nil
-	//	}
-	//	dbParam := make(map[string]string)
-	//	for k, v := range urlValues {
-	//		dbParam[k] = v[0]
-	//	}
-	//	cfg.Params = dbParam
-	//	cfg.Net = "tcp"
-	//	finalDns = cfg.FormatDSN()
-	//} else {
-	//	finalDns = allConfig.Gorm.Url
-	//}
-
 	var db *gorm.DB
 	finalDns := allConfig.Gorm.Url
 	if allConfig.Gorm.DatabaseType == "" || allConfig.Gorm.DatabaseType == "mysql" {
@@ -86,27 +63,27 @@ func NewGorm(logger *zap.Logger, allConfig *configUtils.CommonConfig) *gorm.DB {
 		var err error
 		db, err = gorm.Open(mysql.Open(finalDns), config)
 		if err != nil {
-			logger.Fatal("gorm连接数据库失败", zap.Error(err))
+			log.Fatal("gorm连接数据库失败", zap.Error(err))
 			return nil
 		}
 	} else if allConfig.Gorm.DatabaseType == "postgres" {
 		var err error
 		db, err = gorm.Open(postgres.Open(finalDns), config)
 		if err != nil {
-			logger.Fatal("gorm连接数据库失败", zap.Error(err))
+			log.Fatal("gorm连接数据库失败", zap.Error(err))
 			return nil
 		}
 	} else {
-		logger.Fatal("不支持的数据库类型", zap.String("databaseType", allConfig.Gorm.DatabaseType))
+		log.Fatal("不支持的数据库类型", zap.String("databaseType", allConfig.Gorm.DatabaseType))
 		return nil
 	}
 
 	err := SetGormThread(db, allConfig)
 	if err != nil {
-		logger.Fatal("设置gorm协成池失败", zap.Error(err))
+		log.Fatal("设置gorm协成池失败", zap.Error(err))
 		return nil
 	}
 
-	logger.Info("连接数据库成功")
+	log.Println("连接数据库成功")
 	return db
 }
