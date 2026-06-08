@@ -30,9 +30,10 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 		}
 
 		//取出body作为args
-		//然后把内容转换为json
+		//  然后把内容转换为json
+		//  并且不能是file等
 		var bodyArgs []byte
-		if c.Request.ContentLength != 0 {
+		if c.Request.ContentLength != 0 && c.ContentType() != "application/octet-stream" {
 			bodyArgs, _ = io.ReadAll(c.Request.Body)
 
 			//重新赋值
