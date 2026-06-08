@@ -34,7 +34,8 @@ func getGormConfigCommon(logger *slog.Logger, allConfig *configUtils.CommonConfi
 		//适配slog
 		Logger: slogGorm.New(slogGorm.WithHandler(logger.Handler()),
 			slogGorm.WithTraceAll(), // trace all messages，此时才会打印默认的
-			slogGorm.WithSlowThreshold(time.Duration(allConfig.Gorm.SlowSqlMillSecond)*time.Second),
+			slogGorm.WithSlowThreshold(time.Duration(allConfig.Gorm.SlowSqlMillSecond)*time.Millisecond),
+			slogGorm.WithSourceField(""), //不打印文件行，因为打印的是插件的行数，不是业务的
 			slogGorm.SetLogLevel(slogGorm.DefaultLogType, slog.LevelInfo),
 			slogGorm.SetLogLevel(slogGorm.ErrorLogType, slog.LevelError),
 			slogGorm.SetLogLevel(slogGorm.SlowQueryLogType, slog.LevelWarn),

@@ -11,6 +11,20 @@ import (
 	"github.com/spf13/viper"
 )
 
+//func GetCommonConfig() *CommonConfig {
+//	return commonConfig
+//}
+
+func GetCommonConfig() *CommonConfig {
+	var commonConfig CommonConfig
+	err := viper.Unmarshal(&commonConfig)
+	if err != nil {
+		log.Fatal("配置文件序列化失败:", err)
+		return nil
+	}
+	return &commonConfig
+}
+
 // 从文件里获取配置，支持多个配置文件
 func ReadConfigInFile(configPath string) error {
 	multiConfig := strings.Split(configPath, ";")
@@ -84,14 +98,4 @@ func mergeCommonConfig(mainConfig *viper.Viper) error {
 		v.WatchConfig()
 	}
 	return nil
-}
-
-func GetCommonConfig() *CommonConfig {
-	var commonConfig CommonConfig
-	err := viper.Unmarshal(&commonConfig)
-	if err != nil {
-		log.Fatal("配置文件序列化失败:", err)
-		return nil
-	}
-	return &commonConfig
 }

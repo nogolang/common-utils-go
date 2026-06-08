@@ -8,10 +8,26 @@ import (
 	slogzap "github.com/samber/slog-zap/v2"
 )
 
+var slogLevel *slog.LevelVar
+
+func InitSlogLevel() {
+	slogLevel = NewSlogLevel(configUtils.GetCommonConfig())
+}
+func GetSlogLevel() *slog.LevelVar {
+	return slogLevel
+}
 func NewSlogLevel(commonConfig *configUtils.CommonConfig) *slog.LevelVar {
 	return &slog.LevelVar{}
 }
 
+var logger *slog.Logger
+
+func InitSlog() {
+	logger = NewSlog(configUtils.GetCommonConfig(), GetSlogLevel())
+}
+func GetSlog() *slog.Logger {
+	return logger
+}
 func NewSlog(commonConfig *configUtils.CommonConfig, level *slog.LevelVar) *slog.Logger {
 	var nowUse string
 	//默认使用zap
