@@ -10,8 +10,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/nogolang/common-utils-go/httpUtils/httpCodeUtils"
 	"github.com/pkg/errors"
+)
+
+const (
+	TraceIdKey = "traceId"
 )
 
 // MyGinZap 自定义中间件
@@ -29,6 +34,9 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 			allRequestStr = path + "?" + query
 		}
 
+		//设置traceId
+		SetTraceId(c)
+
 		//取出body作为args
 		//  然后把内容转换为json
 		//  并且不能是file等
@@ -44,8 +52,11 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 		//如果调用到我们的方法，那么方法结束后，就会走后面的逻辑
 		//如果下一个中间件，那么调用下一个中间件即可，如果中间件而返回错误，也会适用于这个log中间件
 		//当前的log中间件是第1个放入的
+		logger.Info(allRequestStr+"before...", "traceId", c.GetString(TraceIdKey))
 		c.Next()
+		logger.Info(allRequestStr+"after...", "traceId", c.GetString(TraceIdKey))
 
+		//计算延迟
 		latency := time.Since(start)
 
 		//转换为rawJson，这样就不会有\符号
@@ -72,6 +83,7 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 				if errors.As(err, &myResponse) {
 					//自定义错误都是返回前台的
 					fields := []slog.Attr{
+						slog.String("traceId", c.GetString(TraceIdKey)),
 						slog.Int("status", myResponse.Status),
 						slog.Any("args", bodyArgsStr),
 						slog.String("ip", c.ClientIP()),
@@ -94,6 +106,7 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 					//如果不是我们返回的错误，比如gorm的语句错误，或者其他的中间件的错误
 					//  那就返回500，这里的错误信息最好别返回，而是打印日志即可，前台就显示简单的信息
 					fields := []slog.Attr{
+						slog.String("traceId", c.GetString(TraceIdKey)),
 						slog.Int("status", http.StatusInternalServerError),
 						slog.Any("args", bodyArgsStr),
 						slog.String("ip", c.ClientIP()),
@@ -116,6 +129,7 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 			//  但是gin会写入status
 			//如果我们control返回200，那么这里也会写入200
 			//如果是bind(不是should)，那么gin也会写入状态
+			slog.String("traceId", c.GetString(TraceIdKey)),
 			slog.Int("status", c.Writer.Status()),
 			slog.Any("args", bodyArgsStr),
 			slog.String("ip", c.ClientIP()),
@@ -123,4 +137,16 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 		})
 		return
 	}
+}
+func SetTraceId(c *gin.Context) {
+	logID := c.GetHeader(TraceIdKey)
+	if logID == "" {
+		tempID, ok := c.Value(TraceIdKey).(string)
+		if ok && len(tempID) > 0 {
+			logID = tempID
+		} else {
+			logID = uuid.NewString()
+		}
+	}
+	c.Set(TraceIdKey, logID)
 }
