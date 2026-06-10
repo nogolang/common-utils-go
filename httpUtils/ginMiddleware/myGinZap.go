@@ -52,7 +52,6 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 		//如果调用到我们的方法，那么方法结束后，就会走后面的逻辑
 		//如果下一个中间件，那么调用下一个中间件即可，如果中间件而返回错误，也会适用于这个log中间件
 		//当前的log中间件是第1个放入的
-		logger.Info(allRequestStr+"  before...", "traceId", c.GetString(TraceIdKey))
 		c.Next()
 
 		//计算延迟
@@ -81,7 +80,7 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 				var myResponse *httpCodeUtils.Response
 				if errors.As(err, &myResponse) {
 					//自定义错误都是返回前台的
-					fields := []slog.Attr{
+					fields := []any{
 						slog.String("traceId", c.GetString(TraceIdKey)),
 						slog.Int("status", myResponse.Status),
 						slog.Any("args", bodyArgsStr),
@@ -92,7 +91,7 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 					fields = append(fields, slog.String("code", myResponse.Code))
 					fields = append(fields, slog.String("message", myResponse.Message))
 
-					logger.Info(allRequestStr, fields)
+					logger.Info(allRequestStr, fields...)
 
 					//自定义错误都是返回前台的
 					c.JSON(myResponse.Status, gin.H{
@@ -100,32 +99,31 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 						"code":    myResponse.Code,
 						"message": myResponse.Message,
 					})
-					logger.Info(allRequestStr+"  after...", "traceId", c.GetString(TraceIdKey))
 					return
 				} else {
 					//如果不是我们返回的错误，比如gorm的语句错误，或者其他的中间件的错误
 					//  那就返回500，这里的错误信息最好别返回，而是打印日志即可，前台就显示简单的信息
-					fields := []slog.Attr{
+					fields := []any{
 						slog.String("traceId", c.GetString(TraceIdKey)),
 						slog.Int("status", http.StatusInternalServerError),
 						slog.Any("args", bodyArgsStr),
 						slog.String("ip", c.ClientIP()),
 						slog.Duration("latency", latency),
 					}
-					logger.Error(allRequestStr, fields, fmt.Sprintf("%+v", err))
+					fields = append(fields, slog.String("error", fmt.Sprintf("%+v", err)))
+					logger.Error(allRequestStr, fields...)
 					c.JSON(http.StatusInternalServerError, gin.H{
 						"status":  http.StatusInternalServerError,
 						"code":    "UnexpectedError",
 						"message": "未知错误，请联系管理员",
 					})
-					logger.Info(allRequestStr+"  after...", "traceId", c.GetString(TraceIdKey))
 					return
 				}
 			}
 		}
 
 		//如果调用过程中没有产生error，则打印info，然后返回即可
-		logger.Info(allRequestStr, []slog.Attr{
+		logger.Info(allRequestStr, []any{
 			//如果是404之类的，那么是直接response里是没有的
 			//  但是gin会写入status
 			//如果我们control返回200，那么这里也会写入200
@@ -135,8 +133,7 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 			slog.Any("args", bodyArgsStr),
 			slog.String("ip", c.ClientIP()),
 			slog.Duration("latency", latency),
-		})
-		logger.Info(allRequestStr+"  after...", "traceId", c.GetString(TraceIdKey))
+		}...)
 		return
 	}
 }
