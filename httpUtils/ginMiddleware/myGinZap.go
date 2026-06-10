@@ -52,7 +52,7 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 		//如果调用到我们的方法，那么方法结束后，就会走后面的逻辑
 		//如果下一个中间件，那么调用下一个中间件即可，如果中间件而返回错误，也会适用于这个log中间件
 		//当前的log中间件是第1个放入的
-		logger.Info(allRequestStr+"before...", "traceId", c.GetString(TraceIdKey))
+		logger.Info(allRequestStr+"  before...", "traceId", c.GetString(TraceIdKey))
 		c.Next()
 
 		//计算延迟
@@ -100,7 +100,7 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 						"code":    myResponse.Code,
 						"message": myResponse.Message,
 					})
-					logger.Info(allRequestStr+"after...", "traceId", c.GetString(TraceIdKey))
+					logger.Info(allRequestStr+"  after...", "traceId", c.GetString(TraceIdKey))
 					return
 				} else {
 					//如果不是我们返回的错误，比如gorm的语句错误，或者其他的中间件的错误
@@ -118,7 +118,7 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 						"code":    "UnexpectedError",
 						"message": "未知错误，请联系管理员",
 					})
-					logger.Info(allRequestStr+"after...", "traceId", c.GetString(TraceIdKey))
+					logger.Info(allRequestStr+"  after...", "traceId", c.GetString(TraceIdKey))
 					return
 				}
 			}
@@ -136,7 +136,7 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 			slog.String("ip", c.ClientIP()),
 			slog.Duration("latency", latency),
 		})
-		logger.Info(allRequestStr+"after...", "traceId", c.GetString(TraceIdKey))
+		logger.Info(allRequestStr+"  after...", "traceId", c.GetString(TraceIdKey))
 		return
 	}
 }
