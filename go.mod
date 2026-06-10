@@ -183,4 +183,4 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/orandin/slog-gorm v1.4.0 => github.com/nogolang/slog-gorm v0.0.0-20260610124650-c88239ba25c3
+replace github.com/orandin/slog-gorm v1.4.0 => github.com/nogolang/slog-gorm v0.0.0-20260610135427-0138672bfec3
