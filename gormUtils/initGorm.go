@@ -39,6 +39,7 @@ func getGormConfigCommon(logger *slog.Logger, allConfig *configUtils.CommonConfi
 			slogGorm.SetLogLevel(slogGorm.DefaultLogType, slog.LevelInfo),
 			slogGorm.SetLogLevel(slogGorm.ErrorLogType, slog.LevelError),
 			slogGorm.SetLogLevel(slogGorm.SlowQueryLogType, slog.LevelWarn),
+			slogGorm.WithContextValue("traceId", "traceId"),
 		),
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: allConfig.Gorm.SingularTable,
