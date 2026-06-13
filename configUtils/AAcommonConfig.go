@@ -23,22 +23,22 @@ type CommonConfig struct {
 	Lock *LockConfig `json:"lock"`
 
 	//redis配置
-	Redis *RedisConfig
+	Redis *RedisConfig `json:"redis"`
 
 	//etcd配置
-	Etcd *EtcdConfig
+	Etcd *EtcdConfig `json:"etcd"`
 
 	//consul配置
-	Consul *ConsulConfig
+	Consul *ConsulConfig `json:"consul"`
 
-	Jwt *JwtConfig
+	Jwt *JwtConfig `json:"jwt"`
 
-	Elastic *ElasticConfig
+	Elastic *ElasticConfig `json:"elastic"`
 
-	RabbitMq *RabbitMqConfig
+	RabbitMq *RabbitMqConfig `json:"rabbitMq"`
 
 	//dtm的配置，主要是配置日志之类的
-	Dtm *DtmConfig
+	Dtm *DtmConfig `json:"dtm"`
 
 	//阿里云账户
 	AliYunAccount *AliYunAccount            `json:"aliYunAccount"`
