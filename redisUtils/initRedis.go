@@ -1,6 +1,7 @@
 package redisUtils
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -15,7 +16,7 @@ func NewRedisClusterClient(allConfig *configUtils.CommonConfig) *redis.ClusterCl
 	var redisDB *redis.ClusterClient
 
 	//如果集群
-	if !allConfig.Redis.IsSingle {
+	if !allConfig.Redis.Single {
 		log.Println("当前启动的是redis集群模式")
 
 		if len(allConfig.Redis.ClusterUrl) == 0 {
@@ -55,7 +56,7 @@ func NewRedisClient(allConfig *configUtils.CommonConfig) *redis.Client {
 	var redisDB *redis.Client
 
 	//如果单机
-	if allConfig.Redis.IsSingle {
+	if allConfig.Redis.Single {
 		log.Println("当前启动的是redis单机模式")
 
 		if allConfig.Redis.SingleUrl == "" {
@@ -88,6 +89,12 @@ func NewRedisClient(allConfig *configUtils.CommonConfig) *redis.Client {
 		//@TODO 需要添加一些判断，不然报空制作，直接退出
 		if redisDB == nil {
 			log.Fatal("redis初始化错误")
+			return nil
+		}
+
+		ping := redisDB.Ping(context.Background())
+		if ping.Err() != nil {
+			log.Fatal("redis连接错误")
 			return nil
 		}
 		return redisDB

@@ -1,7 +1,7 @@
 package configUtils
 
 type RedisConfig struct {
-	IsSingle   bool     `json:"isSingle"`
+	Single     bool     `json:"single"`
 	SingleUrl  string   `json:"singleUrl"`
 	ClusterUrl []string `json:"ClusterUrl"`
 	Db         int      `json:"db"`
