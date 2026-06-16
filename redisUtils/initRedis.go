@@ -74,7 +74,7 @@ func NewRedisClient(allConfig *configUtils.CommonConfig) *redis.Client {
 			PoolSize: 100,
 
 			//等待连接超时时间,默认是1s
-			PoolTimeout: time.Second,
+			PoolTimeout: time.Second * 3,
 
 			//最小空闲连接数,在线程池里的最小空闲连接数，默认0,不限制
 			MinIdleConns: 0,

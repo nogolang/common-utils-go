@@ -61,9 +61,16 @@ type LogConfig struct {
 
 // 判断是否是开发环境
 func IsDev() bool {
-	isProd := os.Getenv("PROD")
-	if isProd == "true" {
-		return false
+	is := os.Getenv("project")
+	if is == "dev" {
+		return true
 	}
-	return true
+	return false
+}
+func IsProd() bool {
+	is := os.Getenv("project")
+	if is == "prod" {
+		return true
+	}
+	return false
 }
