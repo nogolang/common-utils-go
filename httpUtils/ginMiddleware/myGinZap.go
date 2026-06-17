@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/nogolang/common-utils-go/configUtils"
 	"github.com/nogolang/common-utils-go/httpUtils/httpCodeUtils"
 	"github.com/pkg/errors"
 )
@@ -114,7 +115,10 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 						slog.Duration("latency", latency),
 					}
 					fields = append(fields, slog.String("error", fmt.Sprintf("%+v", err)))
-					logger.Error(fmt.Sprintf("错误堆栈：%+v", err))
+					if configUtils.IsDev() {
+						logger.Error(fmt.Sprintf("错误堆栈：%+v", err))
+					}
+
 					//这里打印的是json
 					logger.Error(allRequestStr+after, fields...)
 					c.JSON(http.StatusInternalServerError, gin.H{
