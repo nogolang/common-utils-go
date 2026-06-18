@@ -41,8 +41,9 @@ func NewZapConfig(allConfig *configUtils.CommonConfig, level zapcore.Level) *zap
 	if configUtils.IsDev() {
 		//输出日志，向控制台输出，如果设置的是warn，那么info是不会输出的
 		devCore := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), level)
-		//这里不添加本身的日志堆栈和caller信息，而是输出错误堆栈信息，因为我们的日志是放到中间件的
-		//  所以caller是中间件，所以有和没有caller没有区别，看错误堆栈信息即可
+		//这里不添加本身的日志堆栈信息，但是添加caller信息
+		//  因为错误堆栈信息我们会直接输出，而不是用日志堆栈
+		//caller是文件信息，大部分时候用不到，因为放中间件，小部分要直接打印用
 		logger = zap.New(devCore,
 			zap.AddCaller(),
 		)
@@ -54,7 +55,7 @@ func NewZapConfig(allConfig *configUtils.CommonConfig, level zapcore.Level) *zap
 		prodCoreConsole := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), zapcore.ErrorLevel)
 		prodFileInfo := zapcore.NewCore(getEncoding(allConfig), getLogWriterAll(), level)
 		prodFileError := zapcore.NewCore(getEncoding(allConfig), getLogWriterError(), zapcore.ErrorLevel)
-		logger = zap.New(zapcore.NewTee(prodCoreConsole, prodFileInfo, prodFileError))
+		logger = zap.New(zapcore.NewTee(prodCoreConsole, prodFileInfo, prodFileError), zap.AddCaller())
 	}
 	//这里使用了wire，严格准守di原则
 	//但是有些地方可能不太方便传递logger对象，比如中间件的地方使用全局的也可以
