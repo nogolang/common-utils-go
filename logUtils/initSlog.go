@@ -41,7 +41,7 @@ func NewSlog(commonConfig *configUtils.CommonConfig, level *slog.LevelVar) *slog
 	switch nowUse {
 	case "zap":
 		zap := NewZapConfig(commonConfig, slogzap.LogLevels[level.Level()])
-		logger = slog.New(slogzap.Option{Level: level, Logger: zap, AttrFromContext: attrFromContext}.
+		logger = slog.New(slogzap.Option{Level: level, Logger: zap, AddSource: true, AttrFromContext: attrFromContext}.
 			NewZapHandler())
 	default:
 		log.Fatal("未定义的日志使用方式")
