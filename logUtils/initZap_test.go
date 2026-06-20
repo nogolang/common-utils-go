@@ -15,6 +15,6 @@ func Test_zap(t *testing.T) {
 		},
 	}
 	level := NewZapAtomicLevel(&common)
-	logger := NewZapConfig(&common, level)
+	logger := NewZapConfig(&common, level.Level())
 	logger.Info("hello world", zap.String("password", "123456"))
 }

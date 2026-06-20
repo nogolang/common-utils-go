@@ -17,7 +17,10 @@ import (
 )
 
 const (
-	TraceIdKey = "traceId"
+	TraceIdKey  = "traceId"
+	TraceIdKey2 = "TraceId"
+	TraceIdKey3 = "Trace-Id"
+	TraceIdKey4 = "trace-id"
 )
 
 // MyGinZap 自定义中间件
@@ -148,6 +151,9 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 }
 func SetTraceId(c *gin.Context) {
 	logID := c.GetHeader(TraceIdKey)
+	logID = c.GetHeader(TraceIdKey2)
+	logID = c.GetHeader(TraceIdKey3)
+	logID = c.GetHeader(TraceIdKey4)
 	if logID == "" {
 		tempID, ok := c.Value(TraceIdKey).(string)
 		if ok && len(tempID) > 0 {
