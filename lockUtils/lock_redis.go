@@ -3,6 +3,8 @@ package lockUtils
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"strings"
 	"sync"
 	"time"
 
@@ -21,6 +23,24 @@ type RedisLock struct {
 	mutexMap sync.Map // map[string]*redsync.Mutex  存储已获取的锁对象
 	doneMap  sync.Map // map[string]chan struct{}    看门狗终止信号
 	prefix   string
+}
+
+func (r *RedisLock) WithLock(ctx context.Context, key string, fn func() error) error {
+	if err := r.Lock(ctx, key); err != nil {
+		return err
+	}
+	defer func() {
+		if err := r.Unlock(ctx, key); err != nil {
+			//可能是因为断点GC等问题
+			//需要记录错误日志
+			if strings.Contains(err.Error(), "lock was already expired") {
+				slog.ErrorContext(ctx, fmt.Sprintf("释放锁失败，锁已过期，key=%s, err=%+v", key, err))
+				return
+			}
+			slog.ErrorContext(ctx, fmt.Sprintf("释放锁失败，key=%s, err=%+v", key, err))
+		}
+	}()
+	return fn()
 }
 
 // NewRedisBizLock 创建 Redis 分布式锁实例
