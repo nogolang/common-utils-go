@@ -1,8 +1,6 @@
 package configUtils
 
 import (
-	"os"
-
 	"github.com/nogolang/common-utils-go/uploadUtils"
 )
 
@@ -57,20 +55,4 @@ type LogConfig struct {
 	Use string `json:"use"`
 	//隐藏的字段
 	HiddenField []string `json:"hiddenField"`
-}
-
-// 判断是否是开发环境
-func IsDev() bool {
-	is := os.Getenv("project")
-	if is == "dev" || is == "" {
-		return true
-	}
-	return false
-}
-func IsProd() bool {
-	is := os.Getenv("project")
-	if is == "prod" {
-		return true
-	}
-	return false
 }
