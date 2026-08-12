@@ -27,7 +27,8 @@ func NewRedisClusterClient(allConfig *configUtils.CommonConfig) *redis.ClusterCl
 		//初始化链接,内部自带了链接池
 		redisDB = redis.NewClusterClient(&redis.ClusterOptions{
 			Addrs:    allConfig.Redis.ClusterUrl,
-			Password: "",
+			Username: allConfig.Redis.Username,
+			Password: allConfig.Redis.Password,
 			//最大连接数量,默认是10，没有初始连接数，
 			//看样子它的初始连接数也是动态调整的
 			PoolSize: 100,
@@ -67,7 +68,8 @@ func NewRedisClient(allConfig *configUtils.CommonConfig) *redis.Client {
 		//初始化链接,内部自带了链接池
 		redisDB = redis.NewClient(&redis.Options{
 			Addr:     allConfig.Redis.SingleUrl,
-			Password: "",
+			Username: allConfig.Redis.Username,
+			Password: allConfig.Redis.Password,
 			DB:       allConfig.Redis.Db,
 			//最大连接数量,默认是10，没有初始连接数，
 			//看样子它的初始连接数也是动态调整的

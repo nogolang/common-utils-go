@@ -5,4 +5,6 @@ type RedisConfig struct {
 	SingleUrl  string   `json:"singleUrl"`
 	ClusterUrl []string `json:"ClusterUrl"`
 	Db         int      `json:"db"`
+	Username   string   `json:"username"`
+	Password   string   `json:"password"`
 }
