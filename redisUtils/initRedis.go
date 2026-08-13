@@ -48,6 +48,18 @@ func NewRedisClusterClient(allConfig *configUtils.CommonConfig) *redis.ClusterCl
 		})
 		return redisDB
 	}
+	//@TODO 需要添加一些判断，不然报空制作，直接退出
+	if redisDB == nil {
+		log.Fatal("redis初始化错误")
+		return nil
+	}
+
+	ping := redisDB.Ping(context.Background())
+	if ping.Err() != nil {
+		log.Fatal("redis连接错误", ping.Err())
+		return nil
+	}
+	return redisDB
 
 	return nil
 }
@@ -96,7 +108,7 @@ func NewRedisClient(allConfig *configUtils.CommonConfig) *redis.Client {
 
 		ping := redisDB.Ping(context.Background())
 		if ping.Err() != nil {
-			log.Fatal("redis连接错误")
+			log.Fatal("redis连接错误", ping.Err())
 			return nil
 		}
 		return redisDB
