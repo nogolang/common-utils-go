@@ -24,7 +24,7 @@ const (
 )
 
 // MyGinZap 自定义中间件
-func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
+func MyGinZap(logger *slog.Logger, allConfig *configUtils.CommonConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//取消当前的caller，因为这是放到中间件调用的，没必要用caller
 		//即使显示caller，而是显示的中间件调用，没有意义
@@ -118,7 +118,9 @@ func MyGinZap(logger *slog.Logger) gin.HandlerFunc {
 						slog.Duration("latency", latency),
 					}
 					fields = append(fields, slog.String("error", fmt.Sprintf("%+v", err)))
-					if configUtils.IsDev() {
+					//console编码（人读）时，额外打印一行可读的错误堆栈
+					//json编码时上面的error字段里已经带上了，不重复打
+					if allConfig == nil || allConfig.Log == nil || allConfig.Log.Encoder != "json" {
 						logger.Error(fmt.Sprintf("错误堆栈：%+v", err))
 					}
 

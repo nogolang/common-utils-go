@@ -1,8 +1,6 @@
 package configUtils
 
 import (
-	"os"
-
 	"github.com/nogolang/common-utils-go/uploadUtils"
 )
 
@@ -43,6 +41,12 @@ type CommonConfig struct {
 	//商品检索配置（PG GIN 标准 / 远程检索引擎标准）
 	Search *SearchConfig `json:"search"`
 
+	//雪花ID配置
+	Snow *SnowConfig `json:"snow"`
+
+	//k8s部署相关配置
+	K8s *K8sConfig `json:"k8s"`
+
 	//阿里云账户
 	AliYunAccount *AliYunAccount            `json:"aliYunAccount"`
 	Upload        *uploadUtils.UploadConfig `json:"upload"`
@@ -60,28 +64,22 @@ type LogConfig struct {
 	Use string `json:"use"`
 	//隐藏的字段
 	HiddenField []string `json:"hiddenField"`
+	//编码格式：console（默认，人读） / json（生产日志采集用）
+	Encoder string `json:"encoder"`
+	//输出位置：console（默认，全部输出到控制台） / file（all+error 分文件落盘，控制台只输出error，方便pod里查看，避免撑爆容器volume）
+	Output string `json:"output"`
 }
 
-// 判断是否是开发环境
-func IsDev() bool {
-	is := os.Getenv("PROJECT")
-	if is == "dev" || is == "" {
-		return true
-	}
-	return false
-}
-func IsProd() bool {
-	is := os.Getenv("PROJECT")
-	if is == "prod" {
-		return true
-	}
-	return false
+// SnowConfig 雪花ID配置
+type SnowConfig struct {
+	//直接指定节点号，本地开发用；为0视为未设置
+	WorkerId int64 `json:"workerId"`
+	//从 POD_NAME 解析节点号（K8s StatefulSet 部署用），优先级高于 workerId
+	WorkerIdFromPodName bool `json:"workerIdFromPodName"`
 }
 
-func IsTest() bool {
-	is := os.Getenv("PROJECT")
-	if is == "test" {
-		return true
-	}
-	return false
+// K8sConfig k8s部署相关配置
+type K8sConfig struct {
+	//是否注册到 k8s 服务注册表；false 时返回空 registry，不注册（本地开发用）
+	Register bool `json:"register"`
 }

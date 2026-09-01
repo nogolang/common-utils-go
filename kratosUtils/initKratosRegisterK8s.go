@@ -13,9 +13,9 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-func NewKratosRegisterK8s() *kuberegistry.Registry {
-	//如果是dev，返回一个空的即可，反正我们也不会去用
-	if configUtils.IsDev() {
+func NewKratosRegisterK8s(allConfig *configUtils.CommonConfig) *kuberegistry.Registry {
+	//未开启注册时，返回一个空的即可，反正我们也不会去用
+	if allConfig.K8s == nil || !allConfig.K8s.Register {
 		return &kuberegistry.Registry{}
 	}
 

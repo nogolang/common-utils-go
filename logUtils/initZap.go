@@ -38,24 +38,33 @@ func NewZapAtomicLevel(allConfig *configUtils.CommonConfig) *zap.AtomicLevel {
 func NewZapConfig(allConfig *configUtils.CommonConfig, level zapcore.Level) *zap.Logger {
 	var logger *zap.Logger
 
-	if configUtils.IsDev() {
-		//输出日志，向控制台输出，如果设置的是warn，那么info是不会输出的
-		devCore := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), level)
-		//这里不添加本身的日志堆栈信息，但是添加caller信息
-		//  因为错误堆栈信息我们会直接输出，而不是用日志堆栈
-		//caller是文件信息，大部分时候用不到，因为放中间件，小部分要直接打印用
-		logger = zap.New(devCore,
-			zap.AddCaller(),
-		)
-	} else {
-		//生产环境,直接输出到文件
+	if allConfig.Log != nil && allConfig.Log.Output == "file" {
+		//输出到文件
 		//文件则要分为error和info
 		//至于控制台,我们输出error即可,方便pod里查看
 		//  pod不能放info,不然会全是无意义的内容,会撑爆容器volume
-		prodCoreConsole := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), zapcore.ErrorLevel)
-		prodFileInfo := zapcore.NewCore(getEncoding(allConfig), getLogWriterAll(), level)
-		prodFileError := zapcore.NewCore(getEncoding(allConfig), getLogWriterError(), zapcore.ErrorLevel)
-		logger = zap.New(zapcore.NewTee(prodCoreConsole, prodFileInfo, prodFileError), zap.AddCaller())
+		fileCoreConsole := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), zapcore.ErrorLevel)
+		fileCoreInfo := zapcore.NewCore(getEncoding(allConfig), getLogWriterAll(), level)
+		fileCoreError := zapcore.NewCore(getEncoding(allConfig), getLogWriterError(), zapcore.ErrorLevel)
+		logger = zap.New(zapcore.NewTee(fileCoreConsole, fileCoreInfo, fileCoreError), zap.AddCaller())
+	} else if allConfig.Log != nil && allConfig.Log.Output == "console" {
+		//默认输出日志，向控制台输出，如果设置的是warn，那么info是不会输出的
+		consoleCore := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), level)
+		//这里不添加本身的日志堆栈信息，但是添加caller信息
+		//  因为错误堆栈信息我们会直接输出，而不是用日志堆栈
+		//caller是文件信息，大部分时候用不到，因为放中间件，小部分要直接打印用
+		logger = zap.New(consoleCore,
+			zap.AddCaller(),
+		)
+	} else {
+		//默认输出日志，向控制台输出，如果设置的是warn，那么info是不会输出的
+		consoleCore := zapcore.NewCore(getEncoding(allConfig), getConsoleWriter(), level)
+		//这里不添加本身的日志堆栈信息，但是添加caller信息
+		//  因为错误堆栈信息我们会直接输出，而不是用日志堆栈
+		//caller是文件信息，大部分时候用不到，因为放中间件，小部分要直接打印用
+		logger = zap.New(consoleCore,
+			zap.AddCaller(),
+		)
 	}
 	//这里使用了wire，严格准守di原则
 	//但是有些地方可能不太方便传递logger对象，比如中间件的地方使用全局的也可以
@@ -68,20 +77,28 @@ func getEncoding(common *configUtils.CommonConfig) zapcore.Encoder {
 	encodeTime := func(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 		encoder.AppendString(t.Format(time.DateTime))
 	}
-	if configUtils.IsDev() {
-		config := zap.NewDevelopmentEncoderConfig()
-		config.EncodeTime = encodeTime
-		newEncoder = zapcore.NewConsoleEncoder(config)
 
-		//进行脱敏
-		newEncoder = &SanitizingEncoder{newEncoder, common.Log.HiddenField}
-	} else {
+	//log配置可能没写，脱敏字段就是空
+	var hiddenField []string
+	if common != nil && common.Log != nil {
+		hiddenField = common.Log.HiddenField
+	}
+
+	if common != nil && common.Log != nil && common.Log.Encoder == "json" {
 		config := zap.NewProductionEncoderConfig()
 		config.EncodeTime = encodeTime
 		newEncoder = zapcore.NewJSONEncoder(config)
 
 		//进行脱敏
-		newEncoder = &SanitizingEncoder{newEncoder, common.Log.HiddenField}
+		newEncoder = &SanitizingEncoder{newEncoder, hiddenField}
+	} else {
+		//默认console编码，方便人读
+		config := zap.NewDevelopmentEncoderConfig()
+		config.EncodeTime = encodeTime
+		newEncoder = zapcore.NewConsoleEncoder(config)
+
+		//进行脱敏
+		newEncoder = &SanitizingEncoder{newEncoder, hiddenField}
 	}
 	return newEncoder
 }
