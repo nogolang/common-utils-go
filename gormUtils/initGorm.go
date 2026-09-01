@@ -11,28 +11,21 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 )
 
 // 初始化gorm的配置
-func getGormConfigCommon(logger *slog.Logger, allConfig *configUtils.CommonConfig) *gorm.Config {
-	//var gormLogLevel gormlogger.LogLevel
-	//switch allConfig.Gorm.LogLevel {
-	//case "info":
-	//	gormLogLevel = gormlogger.Info
-	//case "warn":
-	//	gormLogLevel = gormlogger.Warn
-	//case "error":
-	//	gormLogLevel = gormlogger.Error
-	//default:
-	//	gormLogLevel = gormlogger.Info
-	//}
-	var config = &gorm.Config{
-		//适配zap
-		//Logger: gormZap.NewGormZap(logger, gormLogLevel, time.Duration(allConfig.Gorm.SlowSqlMillSecond)*time.Millisecond), //gorm适配zap
-
-		//适配slog
-		Logger: slogGorm.New(slogGorm.WithHandler(logger.Handler()),
+//
+// customLogger 可选：传入自定义 gormlogger.Interface（如过滤 SELECT 的 logger）；
+// 不传时用默认 slogGorm（TraceAll + Error + Slow）。
+// 这给「shop-main-task 等后台 worker」一种能力：过滤周期性扫库 SELECT 日志。
+func getGormConfigCommon(logger *slog.Logger, allConfig *configUtils.CommonConfig, customLogger gormlogger.Interface) *gorm.Config {
+	var gormLoggerInst gormlogger.Interface
+	if customLogger != nil {
+		gormLoggerInst = customLogger
+	} else {
+		gormLoggerInst = slogGorm.New(slogGorm.WithHandler(logger.Handler()),
 			slogGorm.WithTraceAll(), // trace all messages，此时才会打印默认的
 			slogGorm.WithSlowThreshold(time.Duration(allConfig.Gorm.SlowSqlMillSecond)*time.Millisecond),
 			slogGorm.WithSourceField(""), //不打印文件行，因为打印的是插件的行数，不是业务的
@@ -40,7 +33,12 @@ func getGormConfigCommon(logger *slog.Logger, allConfig *configUtils.CommonConfi
 			slogGorm.SetLogLevel(slogGorm.ErrorLogType, slog.LevelError),
 			slogGorm.SetLogLevel(slogGorm.SlowQueryLogType, slog.LevelWarn),
 			slogGorm.WithContextValue("traceId", "traceId"),
-		),
+		)
+	}
+
+	var config = &gorm.Config{
+		//适配slog
+		Logger: gormLoggerInst,
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: allConfig.Gorm.SingularTable,
 		},
@@ -63,9 +61,22 @@ func SetGormThread(db *gorm.DB, allConfig *configUtils.CommonConfig) error {
 	return nil
 }
 
-// NewGormConfig logger由外部注入进来
+// NewGorm logger由外部注入进来，使用默认 slog-gorm logger
+//
+// 业务模块（admin/api/business）用这个版本：所有 SQL 打 INFO 日志。
+// 后台 worker（shop-main-task）用 NewGormWithLogger 传自定义 logger 过滤 SELECT。
 func NewGorm(logger *slog.Logger, allConfig *configUtils.CommonConfig) *gorm.DB {
-	config := getGormConfigCommon(logger, allConfig)
+	return NewGormWithLogger(logger, allConfig, nil)
+}
+
+// NewGormWithLogger 带自定义 gorm logger 的版本
+//
+// customLogger 为 nil 时用默认 slog-gorm logger（同 NewGorm 行为）。
+// 设计动机（见 shop-当前需求.md「task 模块日志噪音」）：
+//   - task 模块传 NewSelectFilteringLogger 过滤周期性扫库 SELECT 日志
+//   - 业务模块不传，保留原行为
+func NewGormWithLogger(logger *slog.Logger, allConfig *configUtils.CommonConfig, customLogger gormlogger.Interface) *gorm.DB {
+	config := getGormConfigCommon(logger, allConfig, customLogger)
 	var db *gorm.DB
 	finalDns := allConfig.Gorm.Url
 	if allConfig.Gorm.DatabaseType == "" || allConfig.Gorm.DatabaseType == "mysql" {

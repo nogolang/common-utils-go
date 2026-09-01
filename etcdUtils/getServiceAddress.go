@@ -36,10 +36,10 @@ func GetHttpServiceAddress(etcdClient *clientv3.Client, prefix string, serviceNa
 		}
 	}
 	//随机获取一个
-	return selector(allServiceAddress, serviceName)
+	return Selector(allServiceAddress, serviceName)
 
 }
-func selector(address []string, serviceName string) (string, error) {
+func Selector(address []string, serviceName string) (string, error) {
 	if len(address) == 0 {
 		return "", errors.New(fmt.Sprintf("指定的服务没有启动,[%s]", serviceName))
 	}

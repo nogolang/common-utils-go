@@ -40,6 +40,9 @@ type CommonConfig struct {
 	//dtm的配置，主要是配置日志之类的
 	Dtm *DtmConfig `json:"dtm"`
 
+	//商品检索配置（PG GIN 标准 / 远程检索引擎标准）
+	Search *SearchConfig `json:"search"`
+
 	//阿里云账户
 	AliYunAccount *AliYunAccount            `json:"aliYunAccount"`
 	Upload        *uploadUtils.UploadConfig `json:"upload"`
