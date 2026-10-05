@@ -11,8 +11,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/nogolang/common-utils-go/configUtils"
 	"github.com/nogolang/common-utils-go/httpUtils/httpCodeUtils"
+	"github.com/nogolang/common-utils-go/logUtils"
 	"github.com/pkg/errors"
 )
 
@@ -24,7 +24,7 @@ const (
 )
 
 // MyGinZap 自定义中间件
-func MyGinZap(logger *slog.Logger, allConfig *configUtils.CommonConfig) gin.HandlerFunc {
+func MyGinZap(logger *slog.Logger, logCfg *logUtils.LogConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//取消当前的caller，因为这是放到中间件调用的，没必要用caller
 		//即使显示caller，而是显示的中间件调用，没有意义
@@ -120,7 +120,7 @@ func MyGinZap(logger *slog.Logger, allConfig *configUtils.CommonConfig) gin.Hand
 					fields = append(fields, slog.String("error", fmt.Sprintf("%+v", err)))
 					//console编码（人读）时，额外打印一行可读的错误堆栈
 					//json编码时上面的error字段里已经带上了，不重复打
-					if allConfig == nil || allConfig.Log == nil || allConfig.Log.Encoder != "json" {
+					if logCfg == nil || logCfg.Encoder != "json" {
 						logger.Error(fmt.Sprintf("错误堆栈：%+v", err))
 					}
 

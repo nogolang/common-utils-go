@@ -6,25 +6,24 @@ import (
 
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/nogolang/common-utils-go/configUtils"
 	"go.uber.org/zap"
 )
 
-func NewElasticClient(allConfig *configUtils.CommonConfig) *elasticsearch.TypedClient {
-	if allConfig.Elastic == nil {
+func NewElasticClient(cfg *ElasticConfig) *elasticsearch.TypedClient {
+	if cfg == nil {
 		return nil
 	}
 	var esConfig elasticsearch.Config
-	if allConfig.Elastic.EnableTls {
-		caFile, err := os.ReadFile(allConfig.Elastic.CaCrt)
+	if cfg.EnableTls {
+		caFile, err := os.ReadFile(cfg.CaCrt)
 		if err != nil {
 			log.Fatal("读取elastic ca文件失败")
 			return nil
 		}
 		esConfig = elasticsearch.Config{
-			Addresses: allConfig.Elastic.Url,
-			Username:  allConfig.Elastic.Username,
-			Password:  allConfig.Elastic.Password,
+			Addresses: cfg.Url,
+			Username:  cfg.Username,
+			Password:  cfg.Password,
 			CACert:    caFile,
 			Logger: &elastictransport.ColorLogger{
 				Output:            os.Stdout,
@@ -33,9 +32,9 @@ func NewElasticClient(allConfig *configUtils.CommonConfig) *elasticsearch.TypedC
 		}
 	} else {
 		esConfig = elasticsearch.Config{
-			Addresses: allConfig.Elastic.Url,
-			Username:  allConfig.Elastic.Username,
-			Password:  allConfig.Elastic.Password,
+			Addresses: cfg.Url,
+			Username:  cfg.Username,
+			Password:  cfg.Password,
 			Logger: &elastictransport.ColorLogger{
 				Output:            os.Stdout,
 				EnableRequestBody: true,

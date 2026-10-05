@@ -5,26 +5,50 @@ import (
 	"log"
 	"log/slog"
 
-	"github.com/nogolang/common-utils-go/configUtils"
 	slogzap "github.com/samber/slog-zap/v2"
 )
 
 var slogLevel *slog.LevelVar
 
-func InitSlogLevel() {
-	slogLevel = NewSlogLevel(configUtils.GetCommonConfig())
+// InitSlogLevel 手动设置全局日志级别。
+//
+// 2026-09-26 配置解耦：原实现在这里偷偷调 configUtils.GetCommonConfig()——整个库
+// 唯一一处隐式读配置文件的地方。级别现在由调用方（fx 注入 NewSlogLevel 的结果）决定。
+func InitSlogLevel(level *slog.LevelVar) {
+	slogLevel = level
 }
+
 func GetSlogLevel() *slog.LevelVar {
 	return slogLevel
 }
-func NewSlogLevel(commonConfig *configUtils.CommonConfig) *slog.LevelVar {
-	return &slog.LevelVar{}
+
+// NewSlogLevel 按配置解析日志级别（空/非法一律回落 info）
+func NewSlogLevel(cfg *LogConfig) *slog.LevelVar {
+	level := new(slog.LevelVar)
+	if cfg == nil {
+		level.Set(slog.LevelInfo)
+		return level
+	}
+	switch cfg.Level {
+	case "debug":
+		level.Set(slog.LevelDebug)
+	case "warn":
+		level.Set(slog.LevelWarn)
+	case "error":
+		level.Set(slog.LevelError)
+	default:
+		//info 及一切未识别值（含空）都按 info
+		level.Set(slog.LevelInfo)
+	}
+	return level
 }
 
-func NewSlog(commonConfig *configUtils.CommonConfig, level *slog.LevelVar) *slog.Logger {
+func NewSlog(cfg *LogConfig, level *slog.LevelVar) *slog.Logger {
 	var nowUse string
 	//默认使用zap
-	if commonConfig.Log.Use == "" {
+	if cfg != nil && cfg.Use != "" {
+		nowUse = cfg.Use
+	} else {
 		nowUse = "zap"
 	}
 
@@ -40,7 +64,7 @@ func NewSlog(commonConfig *configUtils.CommonConfig, level *slog.LevelVar) *slog
 	var logger *slog.Logger
 	switch nowUse {
 	case "zap":
-		zap := NewZapConfig(commonConfig, slogzap.LogLevels[level.Level()])
+		zap := NewZapConfig(cfg, slogzap.LogLevels[level.Level()])
 		logger = slog.New(slogzap.Option{Level: level, Logger: zap, AddSource: true, AttrFromContext: attrFromContext}.
 			NewZapHandler())
 	default:

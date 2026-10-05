@@ -6,12 +6,15 @@ import (
 
 	"github.com/dtm-labs/dtm/client/dtmcli"
 	rawMysql "github.com/go-sql-driver/mysql"
-	"github.com/nogolang/common-utils-go/configUtils"
 	"go.uber.org/zap"
 )
 
-func NewDtmDbConfig(allConfig *configUtils.CommonConfig) *dtmcli.DBConf {
-	cfg, err := rawMysql.ParseDSN(allConfig.Gorm.Url)
+// NewDtmDbConfig 由数据库 DSN 推出 dtm 的 DBConf。
+//
+// 只收 DSN 字符串而不是整份 gorm 配置：dtm 只需要连接信息，
+// 让它依赖 gormUtils 会把两个不相干的工具包绑在一起。
+func NewDtmDbConfig(dsn string) *dtmcli.DBConf {
+	cfg, err := rawMysql.ParseDSN(dsn)
 	if err != nil {
 		zap.L().Error("解析数据库连接字符串出错")
 		return nil

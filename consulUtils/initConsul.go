@@ -6,14 +6,17 @@ import (
 	consulRegister "github.com/go-kratos/kratos/contrib/registry/consul/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	consulApi "github.com/hashicorp/consul/api"
-	"github.com/nogolang/common-utils-go/configUtils"
 
 	"go.uber.org/zap"
 )
 
-func NewKratosConsulClient(allConfig *configUtils.CommonConfig) *consulRegister.Registry {
+// NewKratosConsulClient 注册到 consul，并把服务端口写进 traefik tags。
+//
+// httpPort/grpcPort 单独传入而不是读配置聚合体：consul 包只关心端口，
+// 端口归业务所有（服务自己的 configs/*.yaml），不该由库来定义。
+func NewKratosConsulClient(cfg *ConsulConfig, httpPort, grpcPort int) *consulRegister.Registry {
 	client, err := consulApi.NewClient(&consulApi.Config{
-		Address: allConfig.Consul.Url,
+		Address: cfg.Url,
 	})
 	if err != nil {
 		log.Fatal("连接consul失败", zap.Error(err))
@@ -27,8 +30,8 @@ func NewKratosConsulClient(allConfig *configUtils.CommonConfig) *consulRegister.
 		//设置端口，默认kratos里的port是grpc的端口，这里我们暴露给traefik http的端口
 		//如果是grpc，则需要设置traefik.http.services.service-name.loadbalancer.server.scheme=h2c
 		//并且我们把grpc设置为不同的service，router也要重新提供一份
-		"traefik.http.services.user-service.loadBalancer.server.port=" + fmt.Sprintf("%d", allConfig.Server.HttpPort),
-		"traefik.http.services.user-service-grpc.loadBalancer.server.port=" + fmt.Sprintf("%d", allConfig.Server.GrpcPort),
+		"traefik.http.services.user-service.loadBalancer.server.port=" + fmt.Sprintf("%d", httpPort),
+		"traefik.http.services.user-service-grpc.loadBalancer.server.port=" + fmt.Sprintf("%d", grpcPort),
 		"traefik.http.services.user-service-grpc.loadBalancer.server.scheme=h2c",
 	}
 

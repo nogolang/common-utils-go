@@ -9,7 +9,6 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
 	"github.com/garsue/watermillzap"
-	"github.com/nogolang/common-utils-go/configUtils"
 
 	"go.uber.org/zap"
 )
@@ -20,8 +19,10 @@ func NewZapWaterLogger(logger *zap.Logger) watermill.LoggerAdapter {
 }
 
 // 这个router，是消费者需要使用的，生产者无需使用router
-func NewWaterRouter(allConfig *configUtils.CommonConfig,
-	waterLogger watermill.LoggerAdapter) *message.Router {
+//
+// 2026-09-26：原先签名带一个 *configUtils.CommonConfig，但函数体里从未用过它——
+// 纯冗余参数，直接删掉。
+func NewWaterRouter(waterLogger watermill.LoggerAdapter) *message.Router {
 	router, err := message.NewRouter(message.RouterConfig{}, nil)
 	if err != nil {
 		log.Fatal("创建water消费者路由失败", zap.Error(err))

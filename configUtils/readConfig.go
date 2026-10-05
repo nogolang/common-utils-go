@@ -1,3 +1,15 @@
+// Package configUtils 配置文件装载工具（纯工具，不认识任何业务配置模型）。
+//
+// 职责只有一件：把若干个 yaml 读进 viper 的全局单例，并把每个文件里
+// `otherConfigPath` 列出的其它配置文件一并合并进来，附带 fsnotify 热更新。
+// **它不定义、也不知道任何配置结构体**——业务侧要什么形状的聚合体，
+// 由业务侧自己用 viper.Unmarshal 装配（例：本项目 shop-common/commonConf）。
+//
+// 为什么留在公共库（2026-09-26 回迁）：「一个进程装载多个配置文件、后读覆盖先读」
+// 是与业务无关的通用能力，各项目都需要；放在某个业务仓里等于让别的项目
+// 抄一份或反向依赖。原先它带着一份 17 段的 CommonConfig 上帝结构体，导致
+// 所有引入方都得按它的形状组织 yaml（加一个配置段要改库 + 改全部消费方，耦合方向反了）。
+// 2026-09-26 拆分：配置模型下沉到各消费包、聚合模型归业务侧，**本包只留装载能力**。
 package configUtils
 
 import (
@@ -11,21 +23,18 @@ import (
 	"github.com/spf13/viper"
 )
 
-//func GetCommonConfig() *CommonConfig {
-//	return commonConfig
-//}
+// OtherConfigPathKey 配置文件中「其它配置文件路径列表」这个键的名字。
+//
+// 原名 commonConfigPath（2026-09-26 改名）：叫「common」有误导——这些文件并不比
+// 主文件更"公共"，它们只是**同一个进程要一起装载的其它文件**（公共配置、私有凭据、
+// 中间件白名单都可能是它）。改名后语义中性，且与"公共库"不再撞词。
+const OtherConfigPathKey = "otherConfigPath"
 
-func GetCommonConfig() *CommonConfig {
-	var commonConfig CommonConfig
-	err := viper.Unmarshal(&commonConfig)
-	if err != nil {
-		log.Fatal("配置文件序列化失败:", err)
-		return nil
-	}
-	return &commonConfig
-}
-
-// 从文件里获取配置，支持多个配置文件
+// ReadConfigInFile 从文件里获取配置，支持多个配置文件（分号分隔）。
+//
+// 合并策略：按传入顺序依次读入并 MergeConfigMap 到全局 viper，**后读的覆盖先读的**，
+// 因此调用方应把「公共/默认」放前、「私有/环境相关」放后。
+// 每个文件里 OtherConfigPathKey 列出的文件会在该文件读完之后立即合并。
 func ReadConfigInFile(configPath string) error {
 	multiConfig := strings.Split(configPath, ";")
 	for _, cfgPath := range multiConfig {
@@ -54,8 +63,8 @@ func ReadConfigInFile(configPath string) error {
 		})
 		v.WatchConfig()
 
-		//配置文件里，可能会有commonConfigPath用于引入其他配置文件
-		err = mergeCommonConfig(v)
+		//配置文件里，可能会有 otherConfigPath 用于引入其他配置文件
+		err = mergeOtherConfig(v)
 		if err != nil {
 			return errors.Wrap(err, "配置文件合并失败")
 		}
@@ -63,9 +72,10 @@ func ReadConfigInFile(configPath string) error {
 	return nil
 }
 
-func mergeCommonConfig(mainConfig *viper.Viper) error {
-	allCommonConfigPath := mainConfig.GetStringSlice("commonConfigPath")
-	for _, cfgPath := range allCommonConfigPath {
+// mergeOtherConfig 把 mainConfig 里 otherConfigPath 列出的文件合并进全局 viper
+func mergeOtherConfig(mainConfig *viper.Viper) error {
+	allOtherConfigPath := mainConfig.GetStringSlice(OtherConfigPathKey)
+	for _, cfgPath := range allOtherConfigPath {
 		v := viper.New()
 
 		_, err := os.Stat(cfgPath)

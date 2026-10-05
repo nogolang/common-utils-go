@@ -1,5 +1,6 @@
-package configUtils
+package elasticUtils
 
+// ElasticConfig elasticsearch 连接配置
 type ElasticConfig struct {
 	CaCrt     string   `json:"caCrt"`
 	EnableTls bool     `json:"enableTls"`

@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	kuberegistry "github.com/go-kratos/kratos/contrib/registry/kubernetes/v2"
-	"github.com/nogolang/common-utils-go/configUtils"
 	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -13,9 +12,9 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-func NewKratosRegisterK8s(allConfig *configUtils.CommonConfig) *kuberegistry.Registry {
+func NewKratosRegisterK8s(cfg *K8sConfig) *kuberegistry.Registry {
 	//未开启注册时，返回一个空的即可，反正我们也不会去用
-	if allConfig.K8s == nil || !allConfig.K8s.Register {
+	if cfg == nil || !cfg.Register {
 		return &kuberegistry.Registry{}
 	}
 

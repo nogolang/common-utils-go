@@ -1,3 +1,10 @@
+// Package aliYunUploadUtils —— 【遗留包，勿在新代码中使用】
+//
+// 2026-09-11 起已被 shop-server 自研的 common/commonUtil/ossUtil 取代（当前项目零引用）。
+// 2026-09-18 按「公共库不承载业务限制」的口径改造：本包不再从 UploadConfig 读
+// IncludeType/MinUploadSize/MaxUploadSize（这三个字段已从 uploadUtils.UploadConfig 删除），
+// 限制值在本文件内本地写死，仅供旧项目（3-project/2-my-shop）自身编译需要。
+// 新代码要可配置的图片上传限制：走业务配置（sys_business_config code=upload.image）。
 package aliYunUploadUtils
 
 import (
@@ -14,28 +21,37 @@ import (
 
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss/credentials"
-	"github.com/nogolang/common-utils-go/configUtils"
+	"github.com/nogolang/common-utils-go/uploadUtils"
 	"github.com/pkg/errors"
 )
 
+// 遗留包本地限制（原读 yaml upload 段；该配置模型已按业务限制外迁口径精简）
+var (
+	legacyIncludeType   = []string{"image/png", "image/jpg", "image/jpeg"}
+	legacyMinUploadSize = "1KB"
+	legacyMaxUploadSize = "4MB"
+)
+
 type UploadAliYunOssSvc struct {
-	OssClient    *oss.Client
-	CommonConfig *configUtils.CommonConfig
+	OssClient   *oss.Client
+	Account     *uploadUtils.AliYunAccount
+	UploadCfg   *uploadUtils.UploadConfig
 }
 
-func NewUploadAliYunOss(CommonConfig *configUtils.CommonConfig) *UploadAliYunOssSvc {
+func NewUploadAliYunOss(account *uploadUtils.AliYunAccount, uploadCfg *uploadUtils.UploadConfig) *UploadAliYunOssSvc {
 	cfg := oss.LoadDefaultConfig().
 		WithCredentialsProvider(credentials.
-			NewStaticCredentialsProvider(CommonConfig.AliYunAccount.AccessKeyId,
-				CommonConfig.AliYunAccount.AccessKeySecret)).
-		WithRegion(CommonConfig.Upload.AliYunOss.Region).
-		WithEndpoint(CommonConfig.Upload.AliYunOss.Endpoint)
+			NewStaticCredentialsProvider(account.AccessKeyId,
+				account.AccessKeySecret)).
+		WithRegion(uploadCfg.AliYunOss.Region).
+		WithEndpoint(uploadCfg.AliYunOss.Endpoint)
 	// 创建OSS客户端
 	client := oss.NewClient(cfg)
 
 	handler := UploadAliYunOssSvc{
-		OssClient:    client,
-		CommonConfig: CommonConfig,
+		OssClient: client,
+		Account:   account,
+		UploadCfg: uploadCfg,
 	}
 	return &handler
 }
@@ -54,7 +70,7 @@ func (receiver *UploadAliYunOssSvc) GetUploadUrl(ctx context.Context, uploadPath
 	ext := path.Ext(uploadPath)
 	extNoPint := strings.Replace(ext, ".", "", -1)
 	result, err := receiver.OssClient.Presign(ctx, &oss.PutObjectRequest{
-		Bucket:      oss.Ptr(receiver.CommonConfig.Upload.AliYunOss.BucketName),
+		Bucket:      oss.Ptr(receiver.UploadCfg.AliYunOss.BucketName),
 		Key:         oss.Ptr(uploadPath),
 		ContentType: oss.Ptr("image/" + extNoPint),
 	}, oss.PresignExpires(expired))
@@ -77,7 +93,7 @@ func (receiver *UploadAliYunOssSvc) GetUrlForPreview(ctx context.Context, upload
 	uploadPath = strings.TrimLeft(uploadPath, "/")
 	var res UploadUrlResponse
 	result, err := receiver.OssClient.Presign(ctx, &oss.GetObjectRequest{
-		Bucket: oss.Ptr(receiver.CommonConfig.Upload.AliYunOss.BucketName),
+		Bucket: oss.Ptr(receiver.UploadCfg.AliYunOss.BucketName),
 		Key:    oss.Ptr(uploadPath),
 	}, oss.PresignExpires(expired))
 	if err != nil {
@@ -122,16 +138,16 @@ func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSeco
 	conditionFileType = append(conditionFileType, "in")
 	conditionFileType = append(conditionFileType, "$content-type")
 	//比如 []string{"image/png", "image/jpg", "image/jpeg"}
-	conditionFileType = append(conditionFileType, receiver.CommonConfig.Upload.IncludeType)
+	conditionFileType = append(conditionFileType, legacyIncludeType)
 
 	//限制上传的大小，单位是字节
 	var conditionFileSize []interface{}
 	conditionFileSize = append(conditionFileSize, "content-length-range")
-	minUploadSize, err := transFileSizeUnion(receiver.CommonConfig.Upload.MinUploadSize)
+	minUploadSize, err := transFileSizeUnion(legacyMinUploadSize)
 	if err != nil {
 		return nil, err
 	}
-	maxUploadSize, err := transFileSizeUnion(receiver.CommonConfig.Upload.MaxUploadSize)
+	maxUploadSize, err := transFileSizeUnion(legacyMaxUploadSize)
 	if err != nil {
 		return nil, err
 	}
@@ -152,16 +168,16 @@ func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSeco
 	encodedResult := base64.StdEncoding.EncodeToString(result)
 
 	//以指定的方式进行hash运算生成签名
-	h := hmac.New(sha1.New, []byte(receiver.CommonConfig.AliYunAccount.AccessKeySecret))
+	h := hmac.New(sha1.New, []byte(receiver.Account.AccessKeySecret))
 	_, err = io.WriteString(h, encodedResult)
 	if err != nil {
 		return nil, errors.Wrap(err, "生成签名失败")
 	}
 	signedStr := base64.StdEncoding.EncodeToString(h.Sum(nil))
 	policyToken := UploadPolicyResponse{
-		OssAccessKeyId: receiver.CommonConfig.AliYunAccount.AccessKeyId,
+		OssAccessKeyId: receiver.Account.AccessKeyId,
 		//Bucket域名的固定格式
-		Host:      "https://" + receiver.CommonConfig.Upload.AliYunOss.BucketName + "." + receiver.CommonConfig.Upload.AliYunOss.Endpoint,
+		Host:      "https://" + receiver.UploadCfg.AliYunOss.BucketName + "." + receiver.UploadCfg.AliYunOss.Endpoint,
 		Signature: signedStr,
 		Policy:    encodedResult,
 		Key:       uploadPath,
@@ -174,9 +190,9 @@ func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSeco
 func (receiver *UploadAliYunOssSvc) IsUrlExist(ctx context.Context, urlPath []string) (bool, error) {
 	for _, url := range urlPath {
 		//转换到key
-		index := strings.Index(url, receiver.CommonConfig.Upload.AliYunOss.Endpoint)
-		key := url[index+len(receiver.CommonConfig.Upload.AliYunOss.Endpoint)+1:]
-		exist, err := receiver.OssClient.IsObjectExist(ctx, receiver.CommonConfig.Upload.AliYunOss.BucketName, key)
+		index := strings.Index(url, receiver.UploadCfg.AliYunOss.Endpoint)
+		key := url[index+len(receiver.UploadCfg.AliYunOss.Endpoint)+1:]
+		exist, err := receiver.OssClient.IsObjectExist(ctx, receiver.UploadCfg.AliYunOss.BucketName, key)
 		if err != nil {
 			return false, errors.Wrap(err, "查询文件失败")
 		}

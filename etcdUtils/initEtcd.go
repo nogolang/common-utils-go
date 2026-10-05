@@ -12,7 +12,6 @@ import (
 	"github.com/go-kratos/kratos/v2/selector"
 	"github.com/go-kratos/kratos/v2/selector/random"
 	"github.com/go-kratos/kratos/v2/transport/grpc/resolver/discovery"
-	"github.com/nogolang/common-utils-go/configUtils"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/resolver"
@@ -45,11 +44,11 @@ func NewKratosEtcdClient(etcdClient *clientv3.Client, logger *zap.Logger) *etcd.
 	return r
 }
 
-func NewEtcdClient(allConfig *configUtils.CommonConfig, logger *zap.Logger) *clientv3.Client {
+func NewEtcdClient(cfg *EtcdConfig, logger *zap.Logger) *clientv3.Client {
 	var crt tls.Config
 	var etcdConfig clientv3.Config
-	if allConfig.Etcd.EnableTls {
-		caCrtData, err := os.ReadFile(allConfig.Etcd.CaCrt)
+	if cfg.EnableTls {
+		caCrtData, err := os.ReadFile(cfg.CaCrt)
 		if err != nil {
 			logger.Sugar().Fatal("读取etcd CA根证书失败: ", err.Error())
 		}
@@ -60,7 +59,7 @@ func NewEtcdClient(allConfig *configUtils.CommonConfig, logger *zap.Logger) *cli
 			logger.Sugar().Fatal("解析etcd CA根证书失败，证书格式错误")
 		}
 
-		clientCert, err := tls.LoadX509KeyPair(allConfig.Etcd.ClientCrt, allConfig.Etcd.ClientKey)
+		clientCert, err := tls.LoadX509KeyPair(cfg.ClientCrt, cfg.ClientKey)
 		if err != nil {
 			logger.Sugar().Fatal("加载客户端证书/私钥对失败: ", err.Error())
 		}
@@ -71,12 +70,12 @@ func NewEtcdClient(allConfig *configUtils.CommonConfig, logger *zap.Logger) *cli
 		}
 		//创建etcd配置
 		etcdConfig = clientv3.Config{
-			Endpoints: allConfig.Etcd.Url,
+			Endpoints: cfg.Url,
 			TLS:       &crt,
 		}
 	} else {
 		etcdConfig = clientv3.Config{
-			Endpoints: allConfig.Etcd.Url,
+			Endpoints: cfg.Url,
 		}
 	}
 
