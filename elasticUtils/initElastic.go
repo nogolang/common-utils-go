@@ -6,7 +6,6 @@ import (
 
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	"github.com/elastic/go-elasticsearch/v8"
-	"go.uber.org/zap"
 )
 
 func NewElasticClient(cfg *ElasticConfig) *elasticsearch.TypedClient {
@@ -43,7 +42,7 @@ func NewElasticClient(cfg *ElasticConfig) *elasticsearch.TypedClient {
 	}
 	client, err := elasticsearch.NewTypedClient(esConfig)
 	if err != nil {
-		log.Fatal("连接es失败", zap.Error(err))
+		log.Fatal("连接es失败", err)
 		return nil
 	}
 	return client
