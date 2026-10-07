@@ -20,8 +20,14 @@ func GetRandomFileName(prefix string, ext string) string {
 	newUUID, _ := uuid.NewUUID()
 	name := md5.Sum([]byte(newUUID.String()))
 	prefix = strings.TrimLeft(prefix, "/")
-	ext = strings.TrimLeft(ext, "image/")
-	fileName := prefix + "/" + hashName + "/" + hex.EncodeToString(name[:]) + "." + ext
+	var fileName string
+	if prefix == "" {
+		fileName = hashName + "/" + hex.EncodeToString(name[:]) + "." + ext
+	} else {
+		fileName = prefix + "/" + hashName + "/" + hex.EncodeToString(name[:]) + "." + ext
+
+	}
+
 	return fileName
 }
 

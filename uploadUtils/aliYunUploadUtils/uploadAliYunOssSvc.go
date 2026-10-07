@@ -25,17 +25,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-// 遗留包本地限制（原读 yaml upload 段；该配置模型已按业务限制外迁口径精简）
-var (
-	legacyIncludeType   = []string{"image/png", "image/jpg", "image/jpeg"}
-	legacyMinUploadSize = "1KB"
-	legacyMaxUploadSize = "4MB"
-)
-
 type UploadAliYunOssSvc struct {
-	OssClient   *oss.Client
-	Account     *uploadUtils.AliYunAccount
-	UploadCfg   *uploadUtils.UploadConfig
+	OssClient *oss.Client
+	Account   *uploadUtils.AliYunAccount
+	UploadCfg *uploadUtils.UploadConfig
 }
 
 func NewUploadAliYunOss(account *uploadUtils.AliYunAccount, uploadCfg *uploadUtils.UploadConfig) *UploadAliYunOssSvc {
@@ -109,7 +102,20 @@ func (receiver *UploadAliYunOssSvc) GetUrlForPreview(ctx context.Context, upload
 }
 
 // 获取上传文件的form表单，后续如果阻止了公共访问读，那么可以用GetUploadUrlForPreview获取签名去访问
-func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSecond int64) (*UploadPolicyResponse, error) {
+func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSecond int64, limit *uploadUtils.UploadLimit) (*UploadPolicyResponse, error) {
+	var (
+		includeType   = []string{"image/png", "image/jpg", "image/jpeg"}
+		minUploadSize = "1KB"
+		maxUploadSize = "4MB"
+	)
+	if limit == nil {
+		limit = &uploadUtils.UploadLimit{
+			IncludeType:   includeType,
+			MinUploadSize: minUploadSize,
+			MaxUploadSize: maxUploadSize,
+		}
+	}
+
 	//设置签名的过期时间,需要ISO8601格式
 	expireTime := time.Now().Add(time.Second * time.Duration(expiredSecond)).
 		Format("2006-01-02T15:04:05Z")
@@ -138,21 +144,21 @@ func (receiver *UploadAliYunOssSvc) GetUploadForm(uploadPath string, expiredSeco
 	conditionFileType = append(conditionFileType, "in")
 	conditionFileType = append(conditionFileType, "$content-type")
 	//比如 []string{"image/png", "image/jpg", "image/jpeg"}
-	conditionFileType = append(conditionFileType, legacyIncludeType)
+	conditionFileType = append(conditionFileType, limit.IncludeType)
 
 	//限制上传的大小，单位是字节
 	var conditionFileSize []interface{}
 	conditionFileSize = append(conditionFileSize, "content-length-range")
-	minUploadSize, err := transFileSizeUnion(legacyMinUploadSize)
+	minSize, err := transFileSizeUnion(limit.MinUploadSize)
 	if err != nil {
 		return nil, err
 	}
-	maxUploadSize, err := transFileSizeUnion(legacyMaxUploadSize)
+	maxSize, err := transFileSizeUnion(limit.MaxUploadSize)
 	if err != nil {
 		return nil, err
 	}
-	conditionFileSize = append(conditionFileSize, minUploadSize)
-	conditionFileSize = append(conditionFileSize, maxUploadSize)
+	conditionFileSize = append(conditionFileSize, minSize)
+	conditionFileSize = append(conditionFileSize, maxSize)
 
 	config.Conditions = append(config.Conditions, conditionDir,
 		//conditionStatus,
