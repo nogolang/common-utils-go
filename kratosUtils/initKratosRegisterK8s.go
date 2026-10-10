@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	kuberegistry "github.com/go-kratos/kratos/contrib/registry/kubernetes/v2"
-	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -24,7 +23,7 @@ func NewKratosRegisterK8s(cfg *K8sConfig) *kuberegistry.Registry {
 
 	set, err := getClientSet()
 	if err != nil {
-		log.Fatal("NewKratosRegisterK8s", zap.Error(err))
+		log.Fatalf("NewKratosRegisterK8s: %v", err)
 		return nil
 	}
 	reg := kuberegistry.NewRegistry(set, kuberegistry.GetNamespace())

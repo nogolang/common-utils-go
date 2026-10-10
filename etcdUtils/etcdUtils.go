@@ -3,6 +3,7 @@ package etcdUtils
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"slices"
 	"strconv"
 	"strings"
@@ -13,12 +14,11 @@ import (
 	"github.com/samber/lo"
 	etcdClientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/client/v3/concurrency"
-	"go.uber.org/zap"
 )
 
 type EtcdUtils struct {
 	client      *etcdClientv3.Client
-	logger      *zap.Logger
+	logger      *slog.Logger
 	closeListen chan struct{}
 	//纯洁的key，没有加任何前缀和后缀，比如userId,orderId
 	pureKey  string
@@ -26,7 +26,7 @@ type EtcdUtils struct {
 	leaseAll *sync.Map
 }
 
-func NewEtcdUtils(client *etcdClientv3.Client, logger *zap.Logger) *EtcdUtils {
+func NewEtcdUtils(client *etcdClientv3.Client, logger *slog.Logger) *EtcdUtils {
 	return &EtcdUtils{
 		client:      client,
 		logger:      logger,
@@ -69,7 +69,7 @@ func (receiver *EtcdUtils) CreateKvWithLease(key string, value string, ttlSecond
 	go func() {
 		err := receiver.ListenLease(keepLive, *lease, key, value, ttlSecond)
 		if err != nil {
-			receiver.logger.Error("重新创建租约失败", zap.Error(err))
+			receiver.logger.Error("重新创建租约失败", "err", err)
 		}
 	}()
 

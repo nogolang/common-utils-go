@@ -2,6 +2,7 @@ package kratosClient
 
 import (
 	"context"
+	"log/slog"
 
 	"time"
 
@@ -10,10 +11,9 @@ import (
 	"github.com/go-kratos/kratos/v2/selector/filter"
 	"github.com/go-kratos/kratos/v2/selector/random"
 	kratosHttp "github.com/go-kratos/kratos/v2/transport/http"
-	"go.uber.org/zap"
 )
 
-func NewDiscoveryHttpClient(logger *zap.Logger,
+func NewDiscoveryHttpClient(logger *slog.Logger,
 	KratosEtcdClient *kratosEtcd.Registry,
 	serviceName string) *kratosHttp.Client {
 	//创建全局的负载均衡算法为random
@@ -40,8 +40,8 @@ func NewDiscoveryHttpClient(logger *zap.Logger,
 		kratosHttp.WithTimeout(time.Second*60),
 	)
 	if err != nil {
-		logger.Fatal("服务发现初始化错误", zap.Error(err))
-		return nil
+		logger.Error("服务发现初始化错误", "err", err)
+		panic(err)
 	}
 	return httpClient
 }

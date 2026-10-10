@@ -7,7 +7,6 @@ import (
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 )
 
 // 测试的时候，因为是在idea里测试，idea可能读取不到，需要重新打开所有的idea才行
@@ -18,7 +17,7 @@ func NewSnowIdFromK8sEnv(cfg *SnowConfig) *snowflake.Node {
 		//K8s StatefulSet 部署，从 POD_NAME 后缀解析节点号
 		err := viper.BindEnv("POD_NAME")
 		if err != nil {
-			log.Fatal("获取POD_NAME失败", zap.Error(err))
+			log.Fatalf("获取POD_NAME失败: %v", err)
 			return nil
 		}
 		podName := viper.GetString("POD_NAME")
@@ -29,7 +28,7 @@ func NewSnowIdFromK8sEnv(cfg *SnowConfig) *snowflake.Node {
 		numStr := podName[index+1:]
 		num, err = strconv.Atoi(numStr)
 		if err != nil {
-			log.Fatal("获取POD_NAME失败", zap.Error(err))
+			log.Fatalf("获取POD_NAME失败: %v", err)
 			return nil
 		}
 	} else if cfg != nil && cfg.WorkerId != 0 {
@@ -42,7 +41,7 @@ func NewSnowIdFromK8sEnv(cfg *SnowConfig) *snowflake.Node {
 
 	node, err := snowflake.NewNode(int64(num))
 	if err != nil {
-		log.Fatal("创建snowflake node失败", zap.Error(err))
+		log.Fatalf("创建snowflake node失败: %v", err)
 		return nil
 	}
 	return node

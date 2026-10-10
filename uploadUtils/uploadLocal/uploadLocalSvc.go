@@ -1,16 +1,16 @@
 package uploadLocal
 
 import (
+	"log/slog"
 	"os"
 	"path"
 
 	"github.com/nogolang/common-utils-go/fileUtils"
 	"github.com/nogolang/common-utils-go/uploadUtils"
-	"go.uber.org/zap"
 )
 
 type UploadLocalHandler struct {
-	Logger *zap.Logger
+	Logger *slog.Logger
 }
 
 func (receiver *UploadLocalHandler) save(pathName string, data []byte) error {

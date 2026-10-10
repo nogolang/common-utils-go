@@ -11,7 +11,6 @@ import (
 	"github.com/go-kratos/kratos/v2/selector/filter"
 	"github.com/go-kratos/kratos/v2/selector/random"
 	kratosHttp "github.com/go-kratos/kratos/v2/transport/http"
-	"go.uber.org/zap"
 )
 
 func NewDiscoveryHttpClient(
@@ -41,7 +40,7 @@ func NewDiscoveryHttpClient(
 		kratosHttp.WithTimeout(time.Second*60),
 	)
 	if err != nil {
-		log.Fatal("服务发现初始化错误", zap.Error(err))
+		log.Fatalf("服务发现初始化错误: %v", err)
 		return nil
 	}
 	return httpClient

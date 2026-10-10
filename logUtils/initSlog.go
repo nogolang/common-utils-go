@@ -11,9 +11,6 @@ import (
 var slogLevel *slog.LevelVar
 
 // InitSlogLevel 手动设置全局日志级别。
-//
-// 2026-09-26 配置解耦：原实现在这里偷偷调 configUtils.GetCommonConfig()——整个库
-// 唯一一处隐式读配置文件的地方。级别现在由调用方（fx 注入 NewSlogLevel 的结果）决定。
 func InitSlogLevel(level *slog.LevelVar) {
 	slogLevel = level
 }

@@ -1,26 +1,29 @@
 module github.com/nogolang/common-utils-go
 
-go 1.26.1
+go 1.27
 
 require (
 	buf.build/go/protovalidate v1.1.0
 	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/ThreeDotsLabs/watermill-amqp/v3 v3.0.2
+	github.com/alibabacloud-go/captcha-20230305 v1.1.3
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.2.4
 	github.com/alibabacloud-go/dysmsapi-20170525/v5 v5.6.0
 	github.com/alibabacloud-go/tea v1.5.3
+	github.com/alicebob/miniredis/v2 v2.39.0
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.3.0
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/cockroachdb/errors v1.12.0
 	github.com/dtm-labs/dtm v1.19.0
 	github.com/elastic/elastic-transport-go/v8 v8.8.0
 	github.com/elastic/go-elasticsearch/v8 v8.19.1
-	github.com/garsue/watermillzap v1.2.0
+	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-kratos/kratos/contrib/registry/consul/v2 v2.0.0-20251217105121-fb8e43efb207
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20251217105121-fb8e43efb207
 	github.com/go-kratos/kratos/contrib/registry/kubernetes/v2 v2.0.0-20260309034246-689d861de3f2
 	github.com/go-kratos/kratos/v2 v2.9.2
+	github.com/go-pay/gopay v1.5.115
 	github.com/go-playground/validator/v10 v10.30.0
 	github.com/go-redsync/redsync/v4 v4.16.0
 	github.com/go-sql-driver/mysql v1.8.1
@@ -51,10 +54,8 @@ require (
 	cel.dev/expr v0.24.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.5 // indirect
-	github.com/alibabacloud-go/captcha-20230305 v1.1.3 // indirect
 	github.com/alibabacloud-go/debug v1.0.1 // indirect
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.9 // indirect
-	github.com/alicebob/miniredis/v2 v2.39.0 // indirect
 	github.com/aliyun/credentials-go v1.4.5 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
@@ -75,7 +76,6 @@ require (
 	github.com/dtm-labs/logger v0.0.2 // indirect
 	github.com/emicklei/go-restful/v3 v3.12.2 // indirect
 	github.com/fatih/color v1.16.0 // indirect
-	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
 	github.com/getsentry/sentry-go v0.27.0 // indirect
@@ -86,6 +86,12 @@ require (
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
+	github.com/go-pay/crypto v0.0.1 // indirect
+	github.com/go-pay/errgroup v0.0.3 // indirect
+	github.com/go-pay/smap v0.0.2 // indirect
+	github.com/go-pay/util v0.0.4 // indirect
+	github.com/go-pay/xlog v0.0.3 // indirect
+	github.com/go-pay/xtime v0.0.2 // indirect
 	github.com/go-playground/form/v4 v4.2.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect

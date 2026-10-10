@@ -12,7 +12,6 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 )
 
 type RequeuePoisonUtils struct {
@@ -79,7 +78,7 @@ func (receiver *RequeuePoisonUtils) CreateRequeue(poisonSubscriber *amqp.Subscri
 	go func() {
 		err := newRequeue.Run(context.Background())
 		if err != nil {
-			log.Fatal("启动water requeue失败", zap.Error(err))
+			log.Fatalf("启动water requeue失败: %v", err)
 			return
 		}
 	}()

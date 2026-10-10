@@ -6,8 +6,6 @@ import (
 	consulRegister "github.com/go-kratos/kratos/contrib/registry/consul/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	consulApi "github.com/hashicorp/consul/api"
-
-	"go.uber.org/zap"
 )
 
 // NewKratosConsulClient 注册到 consul，并把服务端口写进 traefik tags。
@@ -19,7 +17,7 @@ func NewKratosConsulClient(cfg *ConsulConfig, httpPort, grpcPort int) *consulReg
 		Address: cfg.Url,
 	})
 	if err != nil {
-		log.Fatal("连接consul失败", zap.Error(err))
+		log.Fatalf("连接consul失败: %v", err)
 	}
 	log.Info("连接consul成功")
 

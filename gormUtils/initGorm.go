@@ -7,7 +7,6 @@ import (
 	"time"
 
 	slogGorm "github.com/orandin/slog-gorm"
-	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -125,24 +124,24 @@ func NewGormWithLogger(logger *slog.Logger, cfg *GormConfig, customLogger gormlo
 		var err error
 		db, err = gorm.Open(mysql.Open(finalDns), config)
 		if err != nil {
-			log.Fatal("gorm连接数据库失败", zap.Error(err))
+			log.Fatalf("gorm连接数据库失败: %v", err)
 			return nil
 		}
 	} else if cfg.DatabaseType == "postgres" {
 		var err error
 		db, err = gorm.Open(postgres.Open(finalDns), config)
 		if err != nil {
-			log.Fatal("gorm连接数据库失败", zap.Error(err))
+			log.Fatalf("gorm连接数据库失败: %v", err)
 			return nil
 		}
 	} else {
-		log.Fatal("不支持的数据库类型", zap.String("databaseType", cfg.DatabaseType))
+		log.Fatalf("不支持的数据库类型: %s", cfg.DatabaseType)
 		return nil
 	}
 
 	err := SetGormThread(db, cfg)
 	if err != nil {
-		log.Fatal("设置gorm协成池失败", zap.Error(err))
+		log.Fatalf("设置gorm协成池失败: %v", err)
 		return nil
 	}
 

@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/go-kratos/kratos/v2/selector/random"
 	"github.com/go-kratos/kratos/v2/transport/grpc/resolver/discovery"
 	clientv3 "go.etcd.io/etcd/client/v3"
-	"go.uber.org/zap"
 	"google.golang.org/grpc/resolver"
 )
 
@@ -27,12 +27,12 @@ import (
 
 // NewKratosEtcdClient  同时返回etcd-kratos-registry ,后续我们不需要注册到etcd中
 // Deprecated: 已经不需要
-func NewKratosEtcdClient(etcdClient *clientv3.Client, logger *zap.Logger) *etcd.Registry {
+func NewKratosEtcdClient(etcdClient *clientv3.Client, logger *slog.Logger) *etcd.Registry {
 	r := etcd.New(etcdClient,
 		//注册到etcd中的租约TTL
 		etcd.RegisterTTL(time.Second*15),
 	)
-	logger.Sugar().Info("连接etcd成功")
+	logger.Info("连接etcd成功")
 
 	selector.SetGlobalSelector(random.NewBuilder())
 
@@ -44,24 +44,24 @@ func NewKratosEtcdClient(etcdClient *clientv3.Client, logger *zap.Logger) *etcd.
 	return r
 }
 
-func NewEtcdClient(cfg *EtcdConfig, logger *zap.Logger) *clientv3.Client {
+func NewEtcdClient(cfg *EtcdConfig, logger *slog.Logger) *clientv3.Client {
 	var crt tls.Config
 	var etcdConfig clientv3.Config
 	if cfg.EnableTls {
 		caCrtData, err := os.ReadFile(cfg.CaCrt)
 		if err != nil {
-			logger.Sugar().Fatal("读取etcd CA根证书失败: ", err.Error())
+			fatalStartup(logger, "读取etcd CA根证书失败", "err", err)
 		}
 		// 初始化证书池，nil表示基于系统根证书池，若仅信任自定义CA则用x509.NewCertPool()
 		certPool := x509.NewCertPool()
 		// 将CA证书添加到证书池，解析失败会返回false
 		if !certPool.AppendCertsFromPEM(caCrtData) {
-			logger.Sugar().Fatal("解析etcd CA根证书失败，证书格式错误")
+			fatalStartup(logger, "解析etcd CA根证书失败，证书格式错误")
 		}
 
 		clientCert, err := tls.LoadX509KeyPair(cfg.ClientCrt, cfg.ClientKey)
 		if err != nil {
-			logger.Sugar().Fatal("加载客户端证书/私钥对失败: ", err.Error())
+			fatalStartup(logger, "加载客户端证书/私钥对失败", "err", err)
 		}
 		crt = tls.Config{
 			ServerName:   "etcd",
@@ -81,12 +81,20 @@ func NewEtcdClient(cfg *EtcdConfig, logger *zap.Logger) *clientv3.Client {
 
 	//3.3x版本以后，超时不会直接通过error返回，必须要使用Status方法判断
 	client, _ := clientv3.New(etcdConfig)
-	timeout, _ := context.WithTimeout(context.Background(), 3*time.Second)
+	timeout, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 	_, err := client.Status(timeout, etcdConfig.Endpoints[0])
 	if err != nil {
-		log.Fatal("连接etcd失败", zap.Error(err))
-		return nil
+		log.Printf("连接etcd失败: %v", err)
+		panic(err)
 	}
 
 	return client
+}
+
+func fatalStartup(logger *slog.Logger, message string, args ...any) {
+	if logger != nil {
+		logger.Error(message, args...)
+	}
+	panic(message)
 }

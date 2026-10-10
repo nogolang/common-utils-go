@@ -3,6 +3,7 @@ package kratosClient
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	kratosEtcd "github.com/go-kratos/kratos/contrib/registry/etcd/v2"
@@ -13,12 +14,11 @@ import (
 	kratosGrpc "github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/nogolang/common-utils-go/kratosUtils/kratosMiddleware"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 	rawGrpc "google.golang.org/grpc"
 )
 
 // targetPort只有生产环境需要
-func GetGrpcClientWithK8s(logger *zap.Logger,
+func GetGrpcClientWithK8s(logger *slog.Logger,
 	serverName string,
 	kratosRegister *kuberegistry.Registry) (*rawGrpc.ClientConn, error) {
 	var allCallOption []kratosGrpc.ClientOption
@@ -47,7 +47,7 @@ func GetGrpcClientWithK8s(logger *zap.Logger,
 		allCallOption...,
 	)
 	if err != nil {
-		logger.Sugar().Error("服务发现错误", err)
+		logger.Error("服务发现错误", "err", err)
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func GetGrpcClientWithK8s(logger *zap.Logger,
 }
 
 // Deprecated: 采用k8s代替
-func GetGrpcClientWithEtcd(logger *zap.Logger,
+func GetGrpcClientWithEtcd(logger *slog.Logger,
 	serverName string,
 	kratosEtcdClient *kratosEtcd.Registry) (*rawGrpc.ClientConn, error) {
 	//创建全局的负载均衡算法为random
